@@ -1,0 +1,151 @@
+<?xml version="1.0"?>
+<!-- ENPM662-Project1-Group1 -->
+<robot name="terp2" xmlns:xacro="http://www.ros.org/wiki/xacro">
+    <ros2_control name="GazeboSystem" type="system">
+        <hardware>
+            <plugin>gazebo_ros2_control/GazeboSystem</plugin>
+        </hardware>
+        
+        <!-- Position controller for steering (swivels only) -->
+        <joint name="joint_swivel_front">
+            <command_interface name="position">
+                <param name="min">-0.5</param>
+                <param name="max">0.5</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_swivel_back">
+            <command_interface name="position">
+                <param name="min">-0.5</param>
+                <param name="max">0.5</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <!-- Velocity controller for movement (drive wheels only) -->
+        <joint name="joint_drivewheel_right">
+            <command_interface name="velocity">
+                <param name="min">-10</param>
+                <param name="max">10</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_drivewheel_left">
+            <command_interface name="velocity">
+                <param name="min">-10</param>
+                <param name="max">10</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+
+
+        <!-- Position controller for arm joints -->
+
+        <joint name="joint_arm_1">
+            <command_interface name="position">
+                <param name="min">-0.5</param>
+                <param name="max">0.5</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_arm_2">
+            <command_interface name="position">
+                <param name="min">-0.5</param>
+                <param name="max">0.5</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_arm_3">
+            <command_interface name="position">
+                <param name="min">-0.5</param>
+                <param name="max">0.5</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_arm_4">
+            <command_interface name="position">
+                <param name="min">-0.5</param>
+                <param name="max">0.5</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_arm_5">
+            <command_interface name="position">
+                <param name="min">-0.5</param>
+                <param name="max">0.5</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <!-- REMAINING JOINTS ARE FOR STATE INTERFACES ONLY -->
+
+        <joint name="joint_swivelwheel_front">
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_swivelwheel_back">
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_axle">
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_slot1">
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_slot2">
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_slot3">
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_slot4">
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_slot5">
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_slot6">
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+    </ros2_control>
+
+    <gazebo>
+        <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
+            <parameters>$(find terp2)/config/control.yaml</parameters>
+        </plugin>
+    </gazebo>
+</robot>
+

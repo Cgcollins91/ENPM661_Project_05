@@ -78,4 +78,5 @@ RUN sudo apt-get install -y ros-humble-ros2-controllers
 RUN sudo apt-get install -y ros-humble-gazebo-ros2-control
 RUN sudo apt-get install -y ros-humble-joint-state-publisher
 RUN sudo apt-get install -y ros-humble-controller-manager
+RUN sudo apt-get install -y ros-humble-joint-state-publisher-gui
 RUN pip install pynput
