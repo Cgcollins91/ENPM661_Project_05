@@ -8,9 +8,10 @@
 # Please see the project report for a list of references, or contact
 # the team with specific questions.
 
-BASE_PATH=/mnt/enpm662p1/project1
+BASE_PATH=/mnt/enpm662p2/project2
 cd ${BASE_PATH} || exit
 source ${BASE_PATH}/install/setup.bash
-ros2 launch terp1 gazebo.launch.py
+ros2 launch terp1 rviz.launch.py
+
 
 

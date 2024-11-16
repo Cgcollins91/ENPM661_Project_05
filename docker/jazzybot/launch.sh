@@ -6,7 +6,7 @@
 USERNAME=$(id -un)
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
-REPO="enpm662p1"
+REPO="enpm662p2"
 PROJECT='jazzybot'
 X11='/tmp/.X11-unix:/tmp/.X11-unix'
 WSLG='/mnt/wslg:/mnt/wslg'

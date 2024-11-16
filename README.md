@@ -1,10 +1,10 @@
-# enpm662p1
+# enpm662p2
 
 ## Building Docker Image
 The docker folder holds a variety of image definitions: humblebot, jazzybot, ubuntu2204, ubuntu2404, etc.  
 Building each docker image works the same way.  Using humblebot as an example:
 
-    cd enpm662p1/docker/humblebot
+    cd enpm662p2/docker/humblebot
     ./build.sh
 
 Once you build the images, you can create containers with it.
@@ -13,7 +13,7 @@ Once you build the images, you can create containers with it.
 The docker folder (see above) has a script to help you launch a container.  
 Assuming the image was built without issue, you can repeatedly launch as many containers as you need.
 
-    cd enpm662p1/docker/humblebot
+    cd enpm662p2/docker/humblebot
     ./launch.sh 99
 
 Replace '99' with any number you like.  This helps identify unique containers.  (e.g., humblebot1, humblebot2, etc.).
@@ -26,12 +26,12 @@ If there are changes to the Dockerfile, you will need to update the image and st
 
 After launching a new container, to run the Gazebo demo (which automatically spawns the robot):
 
-    cd /mnt/enpm662p1/project1
+    cd /mnt/enpm662p2/project2
     ./run_empty.sh
 
 The script `run_gazebo.sh` performs a clean build using `colcon` and sources the install files for you.  Alternatively, you can build and run it yourself:
 
-    cd /mnt/enpm662p1/project1
+    cd /mnt/enpm662p2/project2
     colcon build
     source install/setup.bash
 
@@ -52,12 +52,12 @@ Attach to the container running the Gazebo simulation:
 
 After connecting to the existing container, you can start the teleop controller:
 
-    cd /mnt/enpm662p1/project1
+    cd /mnt/enpm662p2/project2
     ./run_teleop.sh
 
 Like the Gazebo Demo, you can also run it manually:
     
-    cd /mnt/enpm662p1/project1
+    cd /mnt/enpm662p2/project2
     source install/setup.bash
 
     ros2 run terp1 teleop.py
@@ -72,7 +72,7 @@ Create a new container:
 
 Since we are using a new container, we need to build the project first.  Only do this step when running the teleop demo in another container:
 
-    cd /mnt/enpm662p1/project1
+    cd /mnt/enpm662p2/project2
     colcon build
     source install/setup.bash
 
@@ -84,7 +84,7 @@ Before starting the controller, you will need to startup the Gazebo simulator.  
 
 Once you have a session ready:
 
-    cd /mnt/enpm662p1/project1
+    cd /mnt/enpm662p2/project2
     ./run_controller.sh
 
 That bash script is basically running:
@@ -102,7 +102,7 @@ To set the parameter, start a new session (or new container) as described previo
 ## Running the Arena, LIDAR, and RViz Demo
 Before running this demo, ensure you have an updated docker image and are not running other simulations at the same time.  This demo will automatically start Gazebo and RViz.  
 
-    cd /mnt/enpm662p1/project1
+    cd /mnt/enpm662p2/project2
     ./run_arena.sh
 
 That bash script is running:
@@ -113,4 +113,4 @@ The automated controller is currently not compatible with the arena.  However, y
 
 
 ## Additional Details on Project 1
-The project includes mix of changes that got it from a collection of URDF files into a working project.  Please see project1/README.md for more details.
+The project includes mix of changes that got it from a collection of URDF files into a working project.  Please see project2/README.md for more details.

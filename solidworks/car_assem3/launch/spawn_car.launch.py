@@ -23,8 +23,8 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     # Get the urdf file
-    CAR = os.environ['PROJECT1_CAR']
-    urdf_path = '/humblebot/enpm662p1/car_assem3/urdf/car_assem3.urdf'
+    CAR = os.environ['PROJECT2_CAR']
+    urdf_path = '/humblebot/enpm662p2/car_assem3/urdf/car_assem3.urdf'
 
     # Launch configuration variables specific to simulation
     x_pose = LaunchConfiguration('x_pose', default='0.0')

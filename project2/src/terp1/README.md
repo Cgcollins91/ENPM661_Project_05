@@ -2,24 +2,24 @@
 
 NOTE: This file captures the significant steps that were taken to get the gazebo simulator to load the robot.  However, this file does not have a complete record of all the steps that we took.  For instructions on how to run the project, please see the README.md in the repository root folder (../README.md). 
 
-For this project, I am using "project1" as the ROS2 workspace and "terp1" as the robot name.  
+For this project, I am using "project2" as the ROS2 workspace and "terp1" as the robot name.  
 ```
-#workspace = project1
+#workspace = project2
 #robot/package = terp1
-#working directory = /mnt/enpm662p1 (which is how it's mounted in the container)
+#working directory = /mnt/enpm662p2 (which is how it's mounted in the container)
 ```
 
 ## Create Package
 First step is to create a new ROS2 package and source it.  
 ```
 #create terp1 package
-cd /mnt/enpm662p1
-mkdir -p project1/src
-cd /mnt/enpm662p1/project1/src
+cd /mnt/enpm662p2
+mkdir -p project2/src
+cd /mnt/enpm662p2/project2/src
 ros2 pkg create --build-type ament_cmake terp1
 
-#build project1
-cd /mnt/enpm662p1/project1
+#build project2
+cd /mnt/enpm662p2/project2
 colcon build 
 source install/setup.bash  
 ```
@@ -30,15 +30,15 @@ There was some cleaning required to get the URDF files to work.  Some of these s
 # goto the directory with the meshes and URDF files
 cd /whatever/car_assem3
 
-cp -R meshes /mnt/enpm662p1/project1/src/terp1/
-cp -R urdf   /mnt/enpm662p1/project1/src/terp1/
+cp -R meshes /mnt/enpm662p2/project2/src/terp1/
+cp -R urdf   /mnt/enpm662p2/project2/src/terp1/
 ```
 
 ### Apply Any Required Fixes to URDF and Mesh Files
 Some of this is personal preference, like down-casing the mesh files.  Some of this is REQUIRED, like fixing the file name, and the data in the URDF file.
 ```
 #fix urdf file
-cd /mnt/enpm662p1/project1/src/terp1/urdf
+cd /mnt/enpm662p2/project2/src/terp1/urdf
 mv car_assem3.urdf terp1.urdf
 
 #delete car_assem3.csv???
@@ -68,15 +68,15 @@ NOTE: The Launch Files have changed ALOT in this project since originally pullin
 
 ```
 # create package directories for launch files and world
-mkdir /mnt/enpm662p1/project1/src/terp1/launch
-mkdir /mnt/enpm662p1/project1/src/terp1/worlds
+mkdir /mnt/enpm662p2/project2/src/terp1/launch
+mkdir /mnt/enpm662p2/project2/src/terp1/worlds
 
 #bring down templates in safe space
 cd /whatever/temp
 git clone https://github.com/shantanuparabumd/ENPM-662-Introduction-to-Robot-Modelling.git
 # cd into cloned directory and copy files
-cp templates/launch/*.py /mnt/enpm662p1/project1/src/terp1/launch/
-cp templates/worlds/empty_world.world /mnt/enpm662p1/project1/src/terp1/worlds/
+cp templates/launch/*.py /mnt/enpm662p2/project2/src/terp1/launch/
+cp templates/worlds/empty_world.world /mnt/enpm662p2/project2/src/terp1/worlds/
 ```
 
 ## CMakeLists.txt
@@ -85,7 +85,7 @@ In the terp1 package, add install instructions for special directories, and any 
 NOTE: This file has changed since adding the Teleop Demo.  
     
 ```
-cd /mnt/enpm662p1/project1/src/terp1/
+cd /mnt/enpm662p2/project2/src/terp1/
 vim CMakeLists.txt
 ------
 install(DIRECTORY urdf meshes launch worlds DESTINATION share/${PROJECT_NAME})
@@ -101,7 +101,7 @@ find_package(tf2_ros REQUIRED)
 ## package.xml
 In the terp1 package, fixup the header bits (email, version, license, etc.).  Note: email must be a properly formatted email address.
 ```
-cd /mnt/enpm662p1/project1/src/terp1/
+cd /mnt/enpm662p2/project2/src/terp1/
 vim package.xml
 ------ 
 <?xml version="1.0"?>
@@ -141,7 +141,7 @@ There are multiple edits in multiple places to get the launch files working
 NOTE:  There have been many changes to these files.  Too many to enumerate here.  
 
 ```
-cd /mnt/enpm662p1/project1/src/terp1/launch
+cd /mnt/enpm662p2/project2/src/terp1/launch
 chmod 644 *.py
 ------
 vim gazebo.launch.py
@@ -155,9 +155,9 @@ vim spawn_robot_ros2.launch.py
 ```
 
 ## Build and Run
-Run from .../project1 directory, not from .../project1/src/terp1.  This will keep you package directory from being polluted with build files.  
+Run from .../project2 directory, not from .../project2/src/terp1.  This will keep you package directory from being polluted with build files.  
 ```
-cd /mnt/enpm662p1/project1
+cd /mnt/enpm662p2/project2
 colcon build
 source install/setup.bash
 ```

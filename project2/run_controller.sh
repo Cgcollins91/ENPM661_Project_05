@@ -8,15 +8,11 @@
 # Please see the project report for a list of references, or contact
 # the team with specific questions.
 
-BASE_PATH=/mnt/enpm662p1/project1
+BASE_PATH=/mnt/enpm662p2/project2
 cd ${BASE_PATH} || exit
+#source /opt/ros/humble/setup.bash
+#colcon build --packages-select terp1_controller
 source ${BASE_PATH}/install/setup.bash
-
-#copy models into default location
-mkdir -p ~/.gazebo/models/arena
-rm -rf ~/.gazebo/models/arena
-cp -R ${BASE_PATH}/src/terp1/models/arena ~/.gazebo/models
-
-ros2 launch terp1 competition.launch.py
+ros2 run terp1_controller terp1_controller
 
 

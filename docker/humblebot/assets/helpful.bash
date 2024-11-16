@@ -1,7 +1,7 @@
 # Project: ENPM662-Project1-Group1
 # Description: Snippet for .bashrc
 
-START_DIR=/mnt/enpm662p1/project1
+START_DIR=/mnt/enpm662p2/project2
 
 alias df='df -h'
 alias grep='grep --color=auto'
