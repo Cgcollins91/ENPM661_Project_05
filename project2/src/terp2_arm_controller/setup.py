@@ -20,9 +20,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'model_state_subscriber = terp2_arm_controller.model_state_subscriber:main',
-            'joint_state_subscriber = terp2_arm_controller.joint_state_subscriber:main',
-            'joint_state_publisher  = terp2_arm_controller.joint_state_publisher:main',
+            'model_state_subscriber      = terp2_arm_controller.model_state_subscriber:main',
+            'joint_state_subscriber      = terp2_arm_controller.joint_state_subscriber:main',
+            'joint_trajectory_publisher  = terp2_arm_controller.joint_trajectory_publisher:main'
         ],
     },
 )

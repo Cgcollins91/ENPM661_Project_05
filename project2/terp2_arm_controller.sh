@@ -14,4 +14,4 @@ cd ${BASE_PATH} || exit
 #source /opt/ros/humble/setup.bash
 #colcon build --packages-select terp2_controller
 source ${BASE_PATH}/install/setup.bash
-ros2 run terp2_arm_controller joint_state_publisher
+ros2 run terp2_arm_controller joint_trajectory_publisher

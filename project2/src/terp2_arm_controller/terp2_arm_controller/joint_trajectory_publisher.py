@@ -13,7 +13,7 @@ class JointTrajectoryPublisher(Node):
             '/arm_controller/joint_trajectory',  # Controller's command topic
             10
         )
-        self.timer_period = 0.01  # Publish every 0.01 seconds (100 Hz)
+        self.timer_period = 0.1  # Publish every 0.01 seconds (100 Hz)
         self.timer = self.create_timer(self.timer_period, self.publish_joint_trajectory)
 
         self.target_service = self.create_service(
@@ -34,9 +34,9 @@ class JointTrajectoryPublisher(Node):
         # Initial target joint positions
         self.target_joint_positions = {
             'joint_arm_1': 0.0,
-            'joint_arm_2': np.pi / 2,
+            'joint_arm_2': np.pi / 4,
             'joint_arm_3': -np.pi / 2,
-            'joint_arm_4': -np.pi ,
+            'joint_arm_4': 0.0 ,
             'joint_arm_5': 0.0
         }
 
@@ -45,10 +45,10 @@ class JointTrajectoryPublisher(Node):
 
         # Step sizes for smooth interpolation
         self.joint_step = {
-            'joint_arm_1': 3.0,
-            'joint_arm_2': 5.0,
-            'joint_arm_3': 3.0,
-            'joint_arm_4': 3.0,
+            'joint_arm_1': 0.1,
+            'joint_arm_2': 0.1,
+            'joint_arm_3': 0.1,
+            'joint_arm_4': 0.1,
             'joint_arm_5': 0.01
         }
 
@@ -84,7 +84,7 @@ class JointTrajectoryPublisher(Node):
         # Create a trajectory point
         point = JointTrajectoryPoint()
         point.positions = self.current_joint_positions
-        point.time_from_start.sec = 1  # Time to reach the positions
+        point.time_from_start.sec = 5  # Time to reach the positions
 
         trajectory_msg.points.append(point)
 
