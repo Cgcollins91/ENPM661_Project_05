@@ -29,7 +29,7 @@ def generate_launch_description():
 
     robot_pkg = get_package_share_directory(robot_name)
 
-    position = [1.5, 0.0, 3.0] #alternate start for competition world
+    position = [0.0, 0.0, 1.5]
     orientation = [0.0, 0.0, 0.0]
 
 
