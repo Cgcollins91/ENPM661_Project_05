@@ -23,7 +23,7 @@ if [[ -e /etc/wsl.conf ]]; then
 fi
 
 # try to find project directory and mount to container
-MOUNT_DIR="/home/${USERNAME}/cpp/${REPO}"
+MOUNT_DIR="/home/${USERNAME}/projects/${REPO}"
 if [[ ! -d ${MOUNT_DIR} ]]; then
     MOUNT_DIR="/home/${USERNAME}/${REPO}"
 elif [[ ! -d ${MOUNT_DIR} ]]; then
