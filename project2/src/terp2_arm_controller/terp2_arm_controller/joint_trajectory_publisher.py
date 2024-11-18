@@ -33,10 +33,10 @@ class JointTrajectoryPublisher(Node):
 
         # Initial target joint positions
         self.target_joint_positions = {
-            'joint_arm_1': 0.0,
-            'joint_arm_2': np.pi / 4,
-            'joint_arm_3': -np.pi / 2,
-            'joint_arm_4': 0.0 ,
+            'joint_arm_1': -np.pi/2,
+            'joint_arm_2': np.pi / 2,
+            'joint_arm_3': np.pi / 2,
+            'joint_arm_4': np.pi / 2,
             'joint_arm_5': 0.0
         }
 
