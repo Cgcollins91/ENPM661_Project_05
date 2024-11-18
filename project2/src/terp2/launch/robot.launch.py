@@ -29,12 +29,14 @@ def generate_launch_description():
 
     robot_pkg = get_package_share_directory(robot_name)
 
-    position = [1.5, 0.0, 3.0] #alternate start for competition world
+    position = [0.0, 0.0, 1.5]
     orientation = [0.0, 0.0, 0.0]
 
 
     robot_urdf = os.path.join(robot_pkg, "urdf", xacro_file)
     xml = xacro.process_file(robot_urdf).toxml()
+    controller_params_file = os.path.join(robot_pkg, 'config', 'control.yaml')
+
 
     entity_name = robot_name # +"-"+str(random.random())
     use_sim_time = LaunchConfiguration('use_sim_time', default='True')
@@ -56,6 +58,19 @@ def generate_launch_description():
         executable='robot_state_publisher',
         output="screen",
         parameters=[{'use_sim_time': use_sim_time, 'robot_description': xml}],
+    )
+
+    controller_manager = Node(
+        package='controller_manager',
+        executable='ros2_control_node',
+        parameters=[{'robot_description': xml}, controller_params_file],
+        output='screen'
+    )
+
+    arm_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['arm_controller', '--controller-manager', '/controller_manager'],
     )
 
     joint_state_broadcaster_spawner = Node(
@@ -87,6 +102,13 @@ def generate_launch_description():
         event_handler=OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
             on_exit=[velocity_controller_spawner],
+        )
+    )
+    
+    delayed_arm_controller_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[arm_controller_spawner],
         )
     )
 
@@ -127,9 +149,11 @@ def generate_launch_description():
             sim_time_arg,
             robot_state_publisher,
             robot_node,
+            controller_manager,  # Added controller manager node
             joint_state_broadcaster_spawner,
             delayed_position_controller_spawner,
             delayed_velocity_controller_spawner,
+            delayed_arm_controller_spawner,  # Added delayed arm controller spawner
             # rviz_node
         ]
     )
