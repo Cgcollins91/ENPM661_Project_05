@@ -98,6 +98,7 @@ class KeyboardControlNode(Node):
                 elif key == 'q':  # Quit
                     linear_vel=0.0
                     steer_angle=0.0
+                    self.reset_joint_steps()
                 elif key == 'w':  # Forward
                     linear_vel += LIN_VEL_STEP_SIZE
                 elif key == 's':  # Reverse
@@ -149,9 +150,10 @@ class KeyboardControlNode(Node):
         for i, joint in enumerate(self.joint_names):
             step = self.joint_step[joint]
             current_position = self.current_joint_positions[i]
-            self.get_logger().info(f'{self.current_joint_positions}')
             if abs(step) > 0.0001:
                 self.current_joint_positions[i] += step
+        rounded_values = [round(value, 3) for value in self.current_joint_positions]
+        self.get_logger().info(f'{rounded_values}')
 
     def publish_joint_trajectory(self):
         self.update_joint_positions()
