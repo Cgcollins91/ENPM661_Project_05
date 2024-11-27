@@ -43,7 +43,7 @@ terp2_controller::terp2_controller() : Node("terp2_controller") {
 
     // init pid controllers
     m_pid_velocity.set_k_values(5, 0.02, 0.7);
-    m_pid_steer.set_k_values(2, 0.005, 0.1);
+    m_pid_steer.set_k_values(1, 0.005, 0.05);
 
     // spin the update
     m_timer = this->create_wall_timer(500ms, [this]() { update(); });
