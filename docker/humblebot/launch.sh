@@ -23,15 +23,18 @@ if [[ -e /etc/wsl.conf ]]; then
 fi
 
 # try to find project directory and mount to container
-MOUNT_DIR="/home/${USERNAME}/projects/${REPO}"
+MOUNT_DIR="/home/${USERNAME}/${REPO}"
 if [[ ! -d ${MOUNT_DIR} ]]; then
     MOUNT_DIR="/home/${USERNAME}/${REPO}"
-elif [[ ! -d ${MOUNT_DIR} ]]; then
+fi
+if [[ ! -d ${MOUNT_DIR} ]]; then
     MOUNT_DIR="/home/${USERNAME}/projects/${REPO}"
-#add support for Anne-Michelle repo location
-elif [[ ! -d ${MOUNT_DIR} ]]; then
+fi
+if [[ ! -d ${MOUNT_DIR} ]]; then
+    MOUNT_DIR="/home/${USERNAME}/cpp/${REPO}"
+fi
+if [[ ! -d ${MOUNT_DIR} ]]; then
     MOUNT_DIR="/home/${USERNAME}/School/662ENPM/${REPO}"
-#end add
 fi
 if [[ -d ${MOUNT_DIR} ]]; then
     PARAMS="${PARAMS} -v ${MOUNT_DIR}:/mnt/${REPO}"
