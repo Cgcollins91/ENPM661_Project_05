@@ -10,6 +10,8 @@
 #include "terp2_controller.h"
 #include <gazebo_msgs/msg/detail/model_states__struct.hpp>
 #include <std_msgs/msg/detail/float64_multi_array__struct.hpp>
+#include <trajectory_msgs/msg/detail/joint_trajectory__struct.hpp>
+#include <trajectory_msgs/msg/detail/joint_trajectory_point__struct.hpp>
 
 using namespace std::chrono_literals;
 
@@ -17,10 +19,12 @@ terp2_controller::terp2_controller() : Node("terp2_controller") {
 
     // parameters
     this->declare_parameter("goal", std::vector<double>{0, 0});
+    this->declare_parameter("arm_goal", std::vector<double>{0, 0, 0, 0, 0});
 
     // publishers
     m_pub_p = this->create_publisher<std_msgs::msg::Float64MultiArray>("/position_controller/commands", 10);
     m_pub_v = this->create_publisher<std_msgs::msg::Float64MultiArray>("/velocity_controller/commands", 10);
+    m_pub_a = this->create_publisher<trajectory_msgs::msg::JointTrajectory>("/arm_controller/joint_trajectory", 10);
 
     // subscribers
     m_sub_j = this->create_subscription<sensor_msgs::msg::JointState>("/joint_states", 10,
@@ -96,12 +100,12 @@ void terp2_controller::pid_update() {
 
     m_steer = std::min(std::max(m_pid_steer.calculate(m_goal_theta, m_dt), -m_steer_max), m_steer_max);
 
-    //deadband near target
+    // deadband near target
     if (m_goal_radius < m_target_radius) {
         m_steer = 0;
         m_velocity = 0;
     } else if (std::abs(m_goal_theta) > m_steer_max && m_goal_radius < m_turn_radius) {
-    // goal is inside the robot's turning radius
+        // goal is inside the robot's turning radius
         m_steer = 0;
         m_velocity = m_velocity_max;
         log("Going straight until viable turning radius...");
@@ -111,12 +115,13 @@ void terp2_controller::pid_update() {
 void terp2_controller::robot_go() {
     set_robot_steering(m_steer);
     set_robot_drive_wheels(m_velocity);
+    set_robot_joint_thetas(m_joint_goals);
 }
 
 void terp2_controller::parameter_callback(const std::vector<rclcpp::Parameter> &parameters) {
     for (const auto &param : parameters) {
         if (param.get_name() == "goal") {
-            log("GOAL RECEIVED!");
+            log("LOCATION GOAL RECEIVED!");
             m_goal_xy = param.as_double_array();
 
             // reset pid controllers
@@ -124,6 +129,9 @@ void terp2_controller::parameter_callback(const std::vector<rclcpp::Parameter> &
             m_pid_velocity.reset();
 
             set_goals();
+        } else if (param.get_name() == "arm_goal") {
+            log("ARM GOAL RECEIVED!");
+            m_joint_goals = param.as_double_array();
         } else {
             log("UNKNOWN PARAMETER");
         }
@@ -143,6 +151,19 @@ void terp2_controller::set_robot_steering(double steer_angle) {
     m_pub_p->publish(message);
 }
 
+void terp2_controller::set_robot_joint_thetas(std::vector<double> joint_goals) {
+    using namespace trajectory_msgs::msg;
+    JointTrajectory message = JointTrajectory();
+    for (int i = 1; i < 6; ++i) {
+        message.joint_names.push_back("joint_arm_" + std::to_string(i));
+    }
+    JointTrajectoryPoint point = JointTrajectoryPoint();
+    point.positions = joint_goals;
+    point.time_from_start.sec = 1;
+    message.points.push_back(point);
+    m_pub_a->publish(message);
+}
+
 void terp2_controller::set_goals() {
     set_rotational_goal();
     set_distance_goal();
@@ -155,20 +176,20 @@ void terp2_controller::set_rotational_goal() {
     yawgoal = yawgoal * 180.0 / m_PI;
     if (yawgoal < 0.0)
         yawgoal += 360.0;
-    //log_double("YAW (Z-Axis) GOAL", yawgoal);
+    // log_double("YAW (Z-Axis) GOAL", yawgoal);
 
     // orientation angle
     double oangle = m_orientation.yawAngleDeg();
     oangle += 90.0;
     if (oangle < 0.0)
         oangle += 360.0;
-    //log_double("ORIENTATION ANGLE", oangle);
+    // log_double("ORIENTATION ANGLE", oangle);
 
     // delta angle
     double dangle = yawgoal - oangle;
     if (dangle < 0.0)
         dangle += 360.0;
-    //log_double("DELTA ANGLE", dangle);
+    // log_double("DELTA ANGLE", dangle);
 
     // fix angle to goal so that robot makes the smaller of the two turns
     if (dangle > 180.0) {
