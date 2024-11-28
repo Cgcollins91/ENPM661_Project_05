@@ -29,7 +29,7 @@ def generate_launch_description():
 
     robot_pkg = get_package_share_directory(robot_name)
 
-    position = [0.0, 0.0, 1.5]
+    position = [0.0, 0.0, 0.8]
     orientation = [0.0, 0.0, 0.0]
 
 
