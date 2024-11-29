@@ -1,11 +1,13 @@
 controller_manager:
   ros__parameters:
-    update_rate: 100
+    update_rate: 1000
     use_sim_time: true
 
     position_controller:
       type: position_controllers/JointGroupPositionController
     arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+    gripper_controller:
       type: joint_trajectory_controller/JointTrajectoryController
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -45,28 +47,6 @@ arm_controller:
     constraints:
       goal_time: 0.6
 
-    gains:
-      joint_arm_1:
-        p: 100.0
-        i: 0.1
-        d: 10.0
-      joint_arm_2:
-        p: 100.0
-        i: 0.1
-        d: 10.0
-      joint_arm_3:
-        p: 100.0
-        i: 0.1
-        d: 10.0
-      joint_arm_4:
-        p: 100.0
-        i: 0.1
-        d: 10.0
-      joint_arm_5:
-        p: 100.0
-        i: 0.1
-        d: 10.0
-
     position_feedback: true
 
 velocity_controller:
@@ -81,3 +61,24 @@ velocity_controller:
       - position
       - velocity
 
+gripper_controller:
+  ros__parameters:
+    action_monitor_rate: 20.0
+    allow_integration_in_goal_trajectories: true
+    allow_nonzero_velocity_at_trajectory_end: false
+    allow_partial_joints_goal: true
+    cmd_timeout: 0.0
+    joints:
+      - joint_gripper_base
+      - joint_gripper_gear
+      - joint_gripper_pad1
+      - joint_gripper_pad2
+    command_interfaces: 
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    constraints:
+      goal_time: 0.6
+
+    position_feedback: true

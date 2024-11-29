@@ -93,6 +93,46 @@
             <state_interface name="velocity" />
         </joint>
 
+
+        <!-- Joint Controll for Gripper -->
+
+        <joint name="joint_gripper_base">
+            <command_interface name="position">
+                <param name="min">-6.283185307</param>
+                <param name="max">6.283185307</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_gripper_gear">
+            <command_interface name="position">
+                <param name="min">-6.283185307</param>
+                <param name="max">6.283185307</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_gripper_pad1">
+            <command_interface name="position">
+                <param name="min">-6.283185307</param>
+                <param name="max">6.283185307</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+        <joint name="joint_gripper_pad2">
+            <command_interface name="position">
+                <param name="min">-6.283185307</param>
+                <param name="max">6.283185307</param>
+            </command_interface>
+            <state_interface name="position" />
+            <state_interface name="velocity" />
+        </joint>
+
+
         <!-- REMAINING JOINTS ARE FOR STATE INTERFACES ONLY -->
 
         <joint name="joint_swivelwheel_front">

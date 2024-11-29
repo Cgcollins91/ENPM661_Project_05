@@ -29,7 +29,7 @@ def generate_launch_description():
 
     robot_pkg = get_package_share_directory(robot_name)
 
-    position = [0.0, 0.0, 1.5]
+    position = [0.0, 0.0, 0.8]
     orientation = [0.0, 0.0, 0.0]
 
 
@@ -73,6 +73,12 @@ def generate_launch_description():
         arguments=['arm_controller', '--controller-manager', '/controller_manager'],
     )
 
+    gripper_controller_spawner = Node(
+        package='controller_manager',
+        executable='spawner',
+        arguments=['gripper_controller', '--controller-manager', '/controller_manager'],
+    )
+
     joint_state_broadcaster_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -109,6 +115,13 @@ def generate_launch_description():
         event_handler=OnProcessExit(
             target_action=joint_state_broadcaster_spawner,
             on_exit=[arm_controller_spawner],
+        )
+    )
+
+    delayed_gripper_controller_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=joint_state_broadcaster_spawner,
+            on_exit=[gripper_controller_spawner],
         )
     )
 
@@ -154,6 +167,7 @@ def generate_launch_description():
             delayed_position_controller_spawner,
             delayed_velocity_controller_spawner,
             delayed_arm_controller_spawner,  # Added delayed arm controller spawner
+            delayed_gripper_controller_spawner,  # Added delayed arm controller spawner
             # rviz_node
         ]
     )
