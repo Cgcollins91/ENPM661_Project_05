@@ -41,6 +41,10 @@ class terp2_controller : public rclcpp::Node {
     void set_robot_joint_thetas(std::vector<double> joint_goals);
     rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr m_pub_a;
 
+    std::vector<double> m_gripper_goals{0, 0, 0, 0};
+    void set_robot_gripper_joints(std::vector<double> joint_goals);
+    rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr m_pub_g;
+
     std::vector<double> m_vel_linear{0, 0, 0};
     std::vector<double> m_vel_angular{0, 0, 0};
     std::vector<double> m_position{0, 0, 0};

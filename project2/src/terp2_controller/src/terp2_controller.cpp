@@ -20,11 +20,13 @@ terp2_controller::terp2_controller() : Node("terp2_controller") {
     // parameters
     this->declare_parameter("goal", std::vector<double>{0, 0});
     this->declare_parameter("arm_goal", std::vector<double>{0, 0, 0, 0, 0});
+    this->declare_parameter("gripper_goal", std::vector<double>{0, 0, 0, 0});
 
     // publishers
     m_pub_p = this->create_publisher<std_msgs::msg::Float64MultiArray>("/position_controller/commands", 10);
     m_pub_v = this->create_publisher<std_msgs::msg::Float64MultiArray>("/velocity_controller/commands", 10);
     m_pub_a = this->create_publisher<trajectory_msgs::msg::JointTrajectory>("/arm_controller/joint_trajectory", 10);
+    m_pub_g = this->create_publisher<trajectory_msgs::msg::JointTrajectory>("/gripper_controller/joint_trajectory", 10);
 
     // subscribers
     m_sub_j = this->create_subscription<sensor_msgs::msg::JointState>("/joint_states", 10,
@@ -116,6 +118,7 @@ void terp2_controller::robot_go() {
     set_robot_steering(m_steer);
     set_robot_drive_wheels(m_velocity);
     set_robot_joint_thetas(m_joint_goals);
+    set_robot_gripper_joints(m_gripper_goals);
 }
 
 void terp2_controller::parameter_callback(const std::vector<rclcpp::Parameter> &parameters) {
@@ -132,6 +135,9 @@ void terp2_controller::parameter_callback(const std::vector<rclcpp::Parameter> &
         } else if (param.get_name() == "arm_goal") {
             log("ARM GOAL RECEIVED!");
             m_joint_goals = param.as_double_array();
+        } else if (param.get_name() == "gripper_goal") {
+            log("GRIPPER GOAL RECEIVED!");
+            m_gripper_goals = param.as_double_array();
         } else {
             log("UNKNOWN PARAMETER");
         }
@@ -162,6 +168,20 @@ void terp2_controller::set_robot_joint_thetas(std::vector<double> joint_goals) {
     point.time_from_start.sec = 1;
     message.points.push_back(point);
     m_pub_a->publish(message);
+}
+
+void terp2_controller::set_robot_gripper_joints(std::vector<double> joint_goals) {
+    using namespace trajectory_msgs::msg;
+    JointTrajectory message = JointTrajectory();
+    message.joint_names.push_back("joint_gripper_base");
+    message.joint_names.push_back("joint_gripper_gear");
+    message.joint_names.push_back("joint_gripper_pad1");
+    message.joint_names.push_back("joint_gripper_pad2");
+    JointTrajectoryPoint point = JointTrajectoryPoint();
+    point.positions = joint_goals;
+    point.time_from_start.sec = 1;
+    message.points.push_back(point);
+    m_pub_g->publish(message);
 }
 
 void terp2_controller::set_goals() {

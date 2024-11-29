@@ -7,6 +7,8 @@ controller_manager:
       type: position_controllers/JointGroupPositionController
     arm_controller:
       type: joint_trajectory_controller/JointTrajectoryController
+    gripper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
     velocity_controller:
@@ -59,3 +61,24 @@ velocity_controller:
       - position
       - velocity
 
+gripper_controller:
+  ros__parameters:
+    action_monitor_rate: 20.0
+    allow_integration_in_goal_trajectories: true
+    allow_nonzero_velocity_at_trajectory_end: false
+    allow_partial_joints_goal: true
+    cmd_timeout: 0.0
+    joints:
+      - joint_gripper_base
+      - joint_gripper_gear
+      - joint_gripper_pad1
+      - joint_gripper_pad2
+    command_interfaces: 
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    constraints:
+      goal_time: 0.6
+
+    position_feedback: true
