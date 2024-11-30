@@ -26,6 +26,7 @@ import numpy as np
 LIN_VEL_STEP_SIZE = 1
 ANG_VEL_STEP_SIZE = 0.05
 ARM_STEP_SIZE = 0.1
+GRIPPER_STEP_SIZE = 0.01
 
 class KeyboardControlNode(Node):
 
@@ -157,13 +158,13 @@ class KeyboardControlNode(Node):
                 elif key == 'v':
                     self.gripper_step['joint_gripper_gear'] -= ARM_STEP_SIZE
                 elif key == 'b':
-                    self.gripper_step['joint_gripper_pad1'] += ARM_STEP_SIZE
+                    self.gripper_step['joint_gripper_pad1'] += GRIPPER_STEP_SIZE
                 elif key == 'n':
-                    self.gripper_step['joint_gripper_pad1'] -= ARM_STEP_SIZE
+                    self.gripper_step['joint_gripper_pad1'] -= GRIPPER_STEP_SIZE
                 elif key == 'm':
-                    self.gripper_step['joint_gripper_pad2'] += ARM_STEP_SIZE
+                    self.gripper_step['joint_gripper_pad2'] += GRIPPER_STEP_SIZE
                 elif key == ',':
-                    self.gripper_step['joint_gripper_pad2'] -= ARM_STEP_SIZE
+                    self.gripper_step['joint_gripper_pad2'] -= GRIPPER_STEP_SIZE
                 else:
                     continue
 
@@ -172,9 +173,7 @@ class KeyboardControlNode(Node):
                         steer_angle=1.0
                 if steer_angle<-1.0:
                     steer_angle=-1.0
-
-                print("Steer Angle\t",steer_angle)
-                print("Linear Velocity\t",linear_vel)
+                print(f'-----------------')
                 self.get_logger().info(f'Steer Angle: {steer_angle}')
                 self.get_logger().info(f'Linear Velocity: {linear_vel}')
                 wheel_velocities.data = [-linear_vel,-linear_vel]
@@ -193,7 +192,9 @@ class KeyboardControlNode(Node):
             if abs(step) > 0.0001:
                 self.current_joint_positions[i] += step
         rounded_values = [round(value, 3) for value in self.current_joint_positions]
+        degrees_values = [round(value * (180.0 / 3.14159),2) for value in self.current_joint_positions]
         self.get_logger().info(f'Joint Values: {rounded_values}')
+        self.get_logger().info(f'Joint Values (degrees): {degrees_values}')
 
     def update_gripper_positions(self):
         for i, joint in enumerate(self.gripper_names):
