@@ -4,6 +4,8 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from std_srvs.srv import SetBool
 import numpy as np
 import sympy as sp
+import math
+from rclpy.duration import Duration
 
 def get_symbolic_DH_matrix(i):
     """ Get the symbolic DH matrix for the ith joint of the UR5 robot"""
@@ -189,8 +191,6 @@ def get_joint_torques(J_CoM, F):
 
     joint_torques = G + tau
 
-    print("Symbolic G(q)")
-    sp.pprint(G)
     
     return joint_torques
 
@@ -221,6 +221,21 @@ def get_thetas(theta_current):
     return [theta_1,  theta_2,  theta_3, theta_4, theta_5, theta_6]
 
 
+def reduce_angle(angle):
+    """ This function reduces an angle to be within -2pi and 2pi """
+    angle %= 2 * math.pi # Reduce the angle modulo 2pi
+    
+    # Adjust to be within -2pi and 2pi
+    if angle > math.pi:
+        angle -= 2 * math.pi
+    elif angle < -math.pi:
+        angle += 2 * math.pi
+    
+    return angle
+
+
+
+
 class JointTrajectoryPublisher(Node):
     def __init__(self):
         super().__init__('joint_trajectory_publisher')
@@ -230,13 +245,15 @@ class JointTrajectoryPublisher(Node):
             10
         )
 
-        self.target = [-1.4315, 0.045753, 0.823987]      
+        self.gripper_publisher = self.create_publisher( JointTrajectory, '/gripper_controller/joint_trajectory', 10)
+
+        self.target = [-1.27221, 0.023923, 0.914991]      
         T_home_matrices, J  = get_robot_transformations()
         # Get the symbolic transformation matrices and Jacobian for our DH Reference Frames
-        # J_CoM, p_com_sym, F = get_CoM_parameters(T_home_matrices)
+        J_CoM, p_com_sym, F = get_CoM_parameters(T_home_matrices)
 
         # Get Symbolic Joint Torques for each Link 
-        # joint_torques       = get_joint_torques(J_CoM, F)
+        joint_torques       = get_joint_torques(J_CoM, F)
         
 
         origin  = sp.Matrix([0, 0, 0, 1])
@@ -266,7 +283,8 @@ class JointTrajectoryPublisher(Node):
         self.T06_func = T06_func
         self.J_func = J_func
         self.timer_period = 0.1  # Publish every 0.01 seconds (100 Hz)
-        self.timer = self.create_timer(self.timer_period, self.publish_joint_trajectory)
+        self.timer = self.create_timer(self.timer_period, self.update_joint_positions)
+
 
         self.target_service = self.create_service(
             SetBool,
@@ -283,220 +301,124 @@ class JointTrajectoryPublisher(Node):
             'joint_arm_5'
         ]
 
-        # Initial target joint positions
-        self.target_joint_positions = {
-            'joint_arm_1': -np.pi/2,
-            'joint_arm_2': np.pi / 2,
-            'joint_arm_3': np.pi / 2,
-            'joint_arm_4': np.pi / 2,
-            'joint_arm_5': 0.0
-        }
-
-        # Initialize current joint positions
-        self.current_joint_positions = [0.0] * len(self.joint_names)
-
-        # Step sizes for smooth interpolation
-        self.joint_step = {
-            'joint_arm_1': 0.1,
-            'joint_arm_2': 0.1,
-            'joint_arm_3': 0.1,
-            'joint_arm_4': 0.1,
-            'joint_arm_5': 0.01
-        }
+        self.gripper_names = [
+            'joint_gripper_base',
+            'joint_gripper_gear',
+            'joint_gripper_pad1',
+            'joint_gripper_pad2'
+        ]
 
         self.start_time = self.get_clock().now()
-        self.moving = False  # Flag to indicate if joints are moving
 
+        # Initialize joint positions and velocities
+        self.q     = np.zeros(6)  # Joint positions
+        self.q_dot = np.zeros(6)  # Joint velocities
+        self.dt    = self.timer_period  # Time step
+
+        # PID controller variables
+        self.coord_error_int = np.zeros(3)
+        self.coord_error_prev = np.zeros(3)
+        self.moving = True  # Flag to indicate if joints are moving
+
+    
     def update_joint_positions(self):
         """Update current joint positions towards target positions."""
-        moving = False
-        origin     = np.array([0, 0, 0, 1])
-        T          = 20              # Total time duration (s)
-        num_points = 1000             # Number of points along the trajectory
-        dt         = T / num_points   # Time step
-        theta_1_start, theta_2_start, theta_3_start     =  0, 0, 0
-        theta_4_start, theta_5_start, theta_6_start     =  0, 0, 0
+        """Control loop called periodically by the ROS timer."""
+        if not self.moving:
+            self.get_logger().info("Movement stopped. 'self.moving' is False.")
+            return
 
-        # PID Gains
-        k_p = 0.03   # Proportional gain
+        # Compute current end-effector position
+        origin = np.array([0, 0, 0, 1])
+        q_sym = get_thetas(get_sympy_thetas(*self.q))
+
+        T06_numeric_flat = self.T06_func(*q_sym)
+        T06_numeric      = np.array(T06_numeric_flat).reshape(4, 4)
+        p_curr           = T06_numeric @ origin
+        self.get_logger().info(f"Initial position: {p_curr[:3]}")
+        self.get_logger().info(f"Target position: {self.target}")
+
+        # Compute errors
+        coord_error = self.target - p_curr[:3]
+        self.coord_error_int += coord_error * self.dt
+        coord_error_deriv = (coord_error - self.coord_error_prev) / self.dt
+        self.coord_error_prev = coord_error
+
+        error_norm = np.linalg.norm(coord_error)
+
+        # Stop moving if the error is small
+        if error_norm < 1e-3:
+            self.get_logger().info("Target position reached.")
+            self.moving = False
+            return
+
+        # PID Control
+        k_p = 0.5   # Proportional gain
         k_i = 0.02   # Integral gain
-        k_d = 0.01   # Derivative gain
+        k_d = 0.1   # Derivative gain
 
-        # Initialize variables
-        theta_current = get_sympy_thetas(
-            theta_1=theta_1_start,
-            theta_2=theta_2_start,
-            theta_3=theta_3_start,
-            theta_4=theta_4_start,
-            theta_5=theta_5_start,
-            theta_6=theta_6_start
-        )
-        theta_numeric_values = get_thetas(theta_current)
-        T06_numeric_flat     = self.T06_func(*theta_numeric_values)
-        T06_numeric          = np.array(T06_numeric_flat).reshape(4, 4)
-        p_start              = T06_numeric @ origin
+        control_signal = k_p * coord_error + k_i * self.coord_error_int + k_d * coord_error_deriv
 
-        q           = np.array([theta_1_start, theta_2_start, theta_3_start, theta_4_start, theta_5_start, theta_6_start], dtype=float)
-        v_eff       = np.zeros(6)
-        p_curr_list = []
-        q_list      = []
-        q_dot_list  = []
-        error_list  = []
-        t_plot      = []
+        self.get_logger().info(f"Control signal: {control_signal}")
 
-        # Error variables
-        coord_error_int  = np.zeros(3)
-        coord_error_prev = np.zeros(3)
+        # Effective velocities
+        v_l_eff = control_signal
+        v_w_eff = np.zeros(3)
+        v_eff = np.concatenate((v_l_eff, v_w_eff))
 
-        # Time and phase variables
-        curr_t              = 0
-        phase               = 1
-        t_start_phase       = 0
-        phase_elapsed_time  = 0
-        semi_circle_delta_t = np.pi / omega # Time required to complete 180 degrees of circle based on omega
+        # Compute joint velocities
+        try:
+            J_numeric_flat = self.J_func(*q_sym)
+            J_num = np.array(J_numeric_flat).reshape(6, 6)
+            self.q_dot = np.linalg.pinv(J_num) @ v_eff
 
+        except np.linalg.LinAlgError:
+            self.get_logger().warn("Jacobian is singular. Stopping movement.")
+            self.get_logger().info(f"Computed q_dot: {self.q_dot}")
+            self.moving = False
+            return
 
+        # Limit joint velocities
+        max_joint_velocity = 0.1  # rad/s
+        self.q_dot = np.clip(self.q_dot, -max_joint_velocity, max_joint_velocity)
 
-        joint_torques = []
+        # Update joint positions
+        self.q += self.q_dot * self.dt
+        self.q = np.array([reduce_angle(angle) for angle in self.q])
+        # self.current_joint_positions = self.q
 
-        def update_joint_positions(q, v_eff, dt):
-            # Calculate joint velocities and update joint positions
-            try:
-                q_sym          = get_thetas(get_sympy_thetas(*q))
-                J_numeric_flat = J_func(*q_sym)
-                J_num          = np.array(J_numeric_flat).reshape(6, 6)
-                q_dot          = np.linalg.pinv(J_num) @ v_eff
+        # Publish the joint trajectory
+        self.publish_joint_trajectory()
 
-            except np.linalg.LinAlgError:
-                print(f"Singularity at time {curr_t:.2f}s")
-                q_dot = np.zeros(6)
-
-            # Limit joint velocities to +/- .1 rad/s
-            q_dot = np.clip(q_dot, -0.1, 0.1)
-
-            # Update joint positions
-            delta_q = q_dot * dt
-            q_new   = q + delta_q
-            q_new   = np.array([reduce_angle(angle) for angle in q_new])
-
-            return q_new, q_dot
-
-        def control_loop(phase, q, curr_t, t_start_phase, coord_error_int, coord_error_prev):
-            stopped = False
-            phase_duration = {
-                1: semi_circle_delta_t,
-                2: break_time + (a / linear_phase_velocity),
-                3: break_time + (b / linear_phase_velocity),
-                4: break_time + (a / linear_phase_velocity)
-            }
-
-            while True:
-                phase_elapsed_time = curr_t - t_start_phase
-
-                # Check if phase is complete
-                if phase_elapsed_time > phase_duration.get(phase, 0):
-                    return q, curr_t, coord_error_int, coord_error_prev, True  # Phase complete
-
-                # Update stopped status based on phase and elapsed time
-                if phase in [2, 3, 4] and phase_elapsed_time <= break_time:
-                    stopped = True
-                else:
-                    stopped = False
-
-                # Get desired trajectory
-                p_desired, v_desired, w_desired = get_desired_trajectory(
-                    phase_in=phase,
-                    p_start=p_start,
-                    phase_elapsed_time=phase_elapsed_time,
-                    stopped=stopped,
-                    omega=omega,
-                    linear_phase_velocity=linear_phase_velocity,
-                    break_time=break_time,
-                    r=r,
-                    a=a,
-                    b=b
-                )
-
-                # Get current position
-                q_sym            = get_thetas(get_sympy_thetas(*q))
-                T06_numeric_flat = T06_func(*q_sym)
-                T06_numeric      = np.array(T06_numeric_flat).reshape(4, 4)
-                p_curr           = T06_numeric @ origin
-
-                # Get Current Torques
-                torques = torque_func(*q_sym)
-                joint_torques.append(torques)
-
-                # Compute errors
-                coord_error       = p_desired - p_curr[:3]
-                coord_error_int  += coord_error * dt
-                coord_error_deriv = (coord_error - coord_error_prev) / dt
-                coord_error_prev  = coord_error
-                
-
-                # Control signal
-                error_norm = np.linalg.norm(coord_error)
-                if error_norm < 1e-3:
-                    control_signal = np.zeros(3)
-                else:
-                    control_signal = k_p * coord_error + k_i * coord_error_int + k_d * coord_error_deriv
-
-                # Effective velocities
-                v_l_eff = v_desired + control_signal
-                v_w_eff = np.zeros(3)
-                v_eff   = np.concatenate((v_l_eff, v_w_eff))
-
-                # Update joint positions
-                q, q_dot = update_joint_positions(q, v_eff, dt)
-
-                # Record data
-                p_curr_list.append(p_curr)
-                q_list.append(q)
-                q_dot_list.append(q_dot)
-                error_list.append(coord_error)
-                t_plot.append(curr_t)
-
-                # Update time
-                curr_t += dt
-                
-
-
-        for i, joint in enumerate(self.joint_names):
-            step = self.joint_step[joint]
-            current_position = self.current_joint_positions[i]
-            target_position  = self.target_joint_positions[joint]
-
-            if abs(current_position - target_position) > step:
-                self.current_joint_positions[i] += step * np.sign(target_position - current_position)
-                self.get_logger().info(f"Joint {joint} moving to {self.current_joint_positions[i]}")
-    
-                moving = True
-            else:
-                self.current_joint_positions[i] = target_position
-        self.moving = moving
 
     def publish_joint_trajectory(self):
         """Publish the joint trajectory to the controller."""
-        # Update joint positions
-        self.update_joint_positions()
-
-        # Create JointTrajectory message
+         # Create JointTrajectory message
+        time_to_move = 20 
         trajectory_msg = JointTrajectory()
         trajectory_msg.joint_names = self.joint_names
 
         # Create a trajectory point
         point = JointTrajectoryPoint()
-        point.positions = self.current_joint_positions
-        point.time_from_start.sec = 5  # Time to reach the positions
+        point.positions = self.q[:5].tolist()  # First 5 joints
+        point.time_from_start = Duration(seconds=time_to_move).to_msg()  # Time to reach the positions
 
         trajectory_msg.points.append(point)
 
+        gripper_msg = JointTrajectory()
+        gripper_msg.joint_names = ['joint_gripper_base']  # Only the 6th joint
+
+        # Create a trajectory point for gripper joint
+        gripper_point = JointTrajectoryPoint()
+        gripper_point.positions = [self.q[5]]  # 6th joint position
+        gripper_point.time_from_start = Duration(seconds=time_to_move).to_msg()
+
+        gripper_msg.points.append(gripper_point)
+
         # Publish the trajectory
         self.publisher.publish(trajectory_msg)
+        self.get_logger().info(f"Publishing joint trajectory: {trajectory_msg}")
 
-        # Log if moving
-        if self.moving:
-            self.get_logger().info(f"Publishing joint trajectory: {trajectory_msg}")
 
     def set_target_positions(self, request, response):
         """Service callback to update target joint positions."""
@@ -507,6 +429,7 @@ class JointTrajectoryPublisher(Node):
         response.success = True
         response.message = "Updated target positions"
         self.get_logger().info(f"Target positions updated to {new_target}")
+        self.moving = True
         return response
 
 
