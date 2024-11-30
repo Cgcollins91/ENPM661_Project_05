@@ -18,7 +18,7 @@ endif()
 
 find_package(ament_cmake REQUIRED)
 
-install(DIRECTORY urdf meshes launch worlds config rviz DESTINATION share/${PROJECT_NAME})
+install(DIRECTORY urdf meshes launch worlds models config rviz DESTINATION share/${PROJECT_NAME})
 install(PROGRAMS launch/teleop.py launch/plot.py DESTINATION lib/${PROJECT_NAME})
 
 find_package(robot_state_publisher REQUIRED)
