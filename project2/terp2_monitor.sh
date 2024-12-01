@@ -10,17 +10,9 @@
 
 BASE_PATH=/mnt/enpm662p2/project2
 cd ${BASE_PATH} || exit
-source /opt/ros/humble/setup.bash
-rm -rf ${BASE_PATH}/build
-rm -rf ${BASE_PATH}/install
-rm -rf ${BASE_PATH}/log
-
-#arena models
-mkdir -p ~/.gazebo/models/arena
-rm -rf ~/.gazebo/models/arena
-cp -R ${BASE_PATH}/src/terp1/models/arena ~/.gazebo/models/
-
-colcon build
+#source /opt/ros/humble/setup.bash
+#colcon build --packages-select terp2_controller
 source ${BASE_PATH}/install/setup.bash
+ros2 run terp2_monitor terp2_monitor
 
 

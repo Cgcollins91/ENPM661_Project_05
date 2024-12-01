@@ -18,7 +18,7 @@ rm -rf ${BASE_PATH}/log
 #arena models
 mkdir -p ~/.gazebo/models/arena
 rm -rf ~/.gazebo/models/arena
-cp -R ${BASE_PATH}/src/terp1/models/arena ~/.gazebo/models/
+#cp -R ${BASE_PATH}/src/terp1/models/arena ~/.gazebo/models/
 
 colcon build
 source ${BASE_PATH}/install/setup.bash

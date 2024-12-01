@@ -7,24 +7,30 @@
 # the team with specific questions.
 
 cmake_minimum_required(VERSION 3.8)
-project(terp1)
+project(terp2_monitor)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
 endif()
 
 find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(gazebo_msgs REQUIRED)
 
-install(DIRECTORY urdf meshes launch worlds config rviz DESTINATION share/${PROJECT_NAME})
-install(PROGRAMS launch/teleop.py launch/plot.py DESTINATION lib/${PROJECT_NAME})
+add_executable(terp2_monitor
+        src/terp2_monitor.h src/terp2_monitor.cpp
+        src/quaternion.h src/quaternion.cpp 
+)
 
-find_package(robot_state_publisher REQUIRED)
-find_package(xacro REQUIRED)
-find_package(tf2 REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(ros2_control REQUIRED)
+ament_target_dependencies(terp2_monitor rclcpp geometry_msgs nav_msgs sensor_msgs gazebo_msgs)
+
+install(TARGETS terp2_monitor DESTINATION lib/${PROJECT_NAME})
 
 ament_package()
