@@ -6,16 +6,17 @@ import numpy as np
 import sympy as sp
 import math
 from rclpy.duration import Duration
+from gazebo_msgs.msg import ModelStates
 
 def get_symbolic_DH_matrix(i):
     """ Get the symbolic DH matrix for the ith joint of the UR5 robot"""
     theta = sp.symbols(f'theta_{i}')
 
-    if i == 1 or i == 2:
+    if i==1 or i == 2:
         theta = theta - sp.pi / 2  # Explicitly subtract pi/2 for specific joints
     elif i == 3:
-        theta = theta + sp.pi  # Explicitly subtract pi/2 for specific joints
-    elif i == 4:
+        theta = theta - sp.pi  # Explicitly subtract pi/2 for specific joints
+    elif i == 4 or i== 5:
         theta = theta + sp.pi / 2
 
     alpha = sp.symbols(f'alpha_{i}')
@@ -40,9 +41,9 @@ def get_sympy_inputs(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, thet
     theta_variables= []
     indexes = ['1',       '2',    '3',     '4',      '5',       '6']
 
-    a     = [       0,       0.85,   0.75,        0,          0,        0 ]
-    alpha = [ -np.pi/2,     np.pi,      0,  -np.pi/2,  np.pi/2,         0 ]
-    d     = [     0.05,      0.05,     0.1,     0.05,      0.2,      0.15 ]
+    a     = [    0.0,      0.85,   0.75,        0,          0,        0 ]
+    alpha = [ -np.pi/2,     -np.pi,      0,  -np.pi/2,  np.pi/2,         0 ]
+    d     = [     0.76,      0.05,     0.1,     0.05,      0.2,      0.05 ]
     theta = [  theta_1,   theta_2, theta_3,   theta_4,  theta_5,  theta_6 ]
  
 
@@ -56,7 +57,6 @@ def get_sympy_inputs(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, thet
     theta_variables = [theta for theta in theta_variables if isinstance(theta, sp.Basic)]
 
     return values, theta_variables
-
 def get_robot_transformations():
     ''' This function computes the symbolic transformation and Jacobian matrices for each joint according 
     to our DH parameters'''
@@ -247,7 +247,7 @@ class JointTrajectoryPublisher(Node):
 
         self.gripper_publisher = self.create_publisher( JointTrajectory, '/gripper_controller/joint_trajectory', 10)
 
-        self.target = [-1.27221, 0.023923, 0.914991]      
+        self.target = [-1.27221+.2, 0.023923, 0.914991]      
         T_home_matrices, J  = get_robot_transformations()
         # Get the symbolic transformation matrices and Jacobian for our DH Reference Frames
         J_CoM, p_com_sym, F = get_CoM_parameters(T_home_matrices)
@@ -306,6 +306,15 @@ class JointTrajectoryPublisher(Node):
             'joint_gripper_gear',
             'joint_gripper_pad1',
             'joint_gripper_pad2'
+        ]
+
+        self.joint_limits = [
+            (  -np.pi/2,   np.pi),  # Joint 1
+            (-2*np.pi, 2*np.pi),  # Joint 2
+            (-2*np.pi, 2*np.pi), # Joint 3
+            (-2*np.pi, 2*np.pi),  # Joint 4
+            (-2*np.pi, 2*np.pi),  # Joint 5
+            (0.0,         0.04)  # Joint 6
         ]
 
         self.start_time = self.get_clock().now()
@@ -379,13 +388,20 @@ class JointTrajectoryPublisher(Node):
             return
 
         # Limit joint velocities
-        max_joint_velocity = 0.1  # rad/s
+        max_joint_velocity = 0.3  # rad/s
         self.q_dot = np.clip(self.q_dot, -max_joint_velocity, max_joint_velocity)
 
         # Update joint positions
         self.q += self.q_dot * self.dt
         self.q = np.array([reduce_angle(angle) for angle in self.q])
         # self.current_joint_positions = self.q
+
+        for i in range(6):
+            if self.q[i] < self.joint_limits[i][0]:
+                self.q[i] = self.joint_limits[i][0]
+            elif self.q[i] > self.joint_limits[i][1]:
+                self.q[i] = self.joint_limits[i][1]
+   
 
         # Publish the joint trajectory
         self.publish_joint_trajectory()
@@ -394,7 +410,7 @@ class JointTrajectoryPublisher(Node):
     def publish_joint_trajectory(self):
         """Publish the joint trajectory to the controller."""
          # Create JointTrajectory message
-        time_to_move = 20 
+        time_to_move = 3 
         trajectory_msg = JointTrajectory()
         trajectory_msg.joint_names = self.joint_names
 
