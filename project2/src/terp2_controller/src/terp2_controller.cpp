@@ -24,14 +24,19 @@ terp2_controller::terp2_controller() : Node("terp2_controller") {
 
     // publishers
     m_pub_p = this->create_publisher<std_msgs::msg::Float64MultiArray>("/position_controller/commands", 10);
+
     m_pub_v = this->create_publisher<std_msgs::msg::Float64MultiArray>("/velocity_controller/commands", 10);
     m_pub_a = this->create_publisher<trajectory_msgs::msg::JointTrajectory>("/arm_controller/joint_trajectory", 10);
     m_pub_g = this->create_publisher<trajectory_msgs::msg::JointTrajectory>("/gripper_controller/joint_trajectory", 10);
 
     // subscribers
-    m_sub_j = this->create_subscription<sensor_msgs::msg::JointState>("/joint_states", 10,
-                                                                      [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
-                                                                          this->joint_state_callback(msg);
+    // m_sub_j = this->create_subscription<sensor_msgs::msg::JointState>("/joint_states", 10,
+    //                                                                  [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
+    //                                                                      this->joint_state_callback(msg);
+    //                                                                  });
+    m_sub_l = this->create_subscription<gazebo_msgs::msg::LinkStates>("/gazebo/link_states", 10,
+                                                                      [this](const gazebo_msgs::msg::LinkStates::SharedPtr msg) {
+                                                                          this->link_state_callback(msg);
                                                                       });
     m_sub_g = this->create_subscription<gazebo_msgs::msg::ModelStates>("/gazebo/model_states", 10,
                                                                        [this](const gazebo_msgs::msg::ModelStates::SharedPtr msg) {
@@ -53,10 +58,37 @@ terp2_controller::terp2_controller() : Node("terp2_controller") {
 
     // spin the update
     m_timer = this->create_wall_timer(500ms, [this]() { update(); });
+    m_slow_timer = this->create_wall_timer(2000ms, [this]() { slow_update(); });
 }
 
 void terp2_controller::joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg) {
     (void)msg; // supression of warning
+}
+
+void terp2_controller::link_state_callback(const gazebo_msgs::msg::LinkStates::SharedPtr msg) {
+    double units = 1000;
+    m_link_names.clear();
+    m_link_coords.clear();
+    m_link_orients.clear();
+    std::vector<std::string> names = msg->name;
+    for (size_t i = 0; i < names.size(); ++i) {
+        auto name = names[i];
+        auto pose = msg->pose[i];
+        // auto twist = msg->twist[i];
+        std::vector<double> coord = {pose.position.x * units, pose.position.y * units, pose.position.z * units};
+        Quaternion quat = {pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z};
+
+        m_link_names.push_back(name);
+        m_link_coords.push_back(coord);
+        m_link_orients.push_back(quat);
+    }
+}
+
+void terp2_controller::log_link_positions() const {
+    for (size_t i = 0; i < m_link_names.size(); ++i) {
+        RCLCPP_INFO(this->get_logger(), "%s Position: x = %.2f, y = %.2f, z = %.2f", m_link_names[i].c_str(), m_link_coords[i][0], m_link_coords[i][1], m_link_coords[i][2]);
+        // RCLCPP_INFO(this->get_logger(), "Orientation: qw = %.2f, qx = %.2f, qy = %.2f, qz = %.2f", m_orientation.w, m_orientation.x, m_orientation.y, m_orientation.z);
+    }
 }
 
 void terp2_controller::model_state_callback(const gazebo_msgs::msg::ModelStates::SharedPtr msg) {
@@ -96,6 +128,9 @@ void terp2_controller::update() {
     robot_go();
 }
 
+void terp2_controller::slow_update() {
+    log_link_positions();
+}
 void terp2_controller::pid_update() {
 
     m_velocity = std::min(m_pid_velocity.calculate(m_goal_radius, m_dt), m_velocity_max);

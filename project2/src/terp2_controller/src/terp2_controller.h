@@ -9,6 +9,7 @@
 #include "pid.hpp"
 #include "quaternion.h"
 #include <gazebo_msgs/msg/model_states.hpp>
+#include <gazebo_msgs/msg/link_states.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <rclcpp/rclcpp.hpp>
@@ -25,9 +26,11 @@ class terp2_controller : public rclcpp::Node {
   public:
     terp2_controller();
     void update();
+    void slow_update();
     void parameter_callback(const std::vector<rclcpp::Parameter> &parameters);
     void joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg);
     void model_state_callback(const gazebo_msgs::msg::ModelStates::SharedPtr msg);
+    void link_state_callback(const gazebo_msgs::msg::LinkStates::SharedPtr msg);
 
   private:
     const std::string m_robot_id = "terp2";
@@ -50,12 +53,18 @@ class terp2_controller : public rclcpp::Node {
     std::vector<double> m_position{0, 0, 0};
     Quaternion m_orientation{0, 0, 0, 0};
 
+    std::vector<std::string> m_link_names;
+    std::vector<std::vector<double>> m_link_coords;
+    std::vector<Quaternion> m_link_orients;
+
     OnSetParametersCallbackHandle::SharedPtr m_ptrParameterSet;
     rclcpp::TimerBase::SharedPtr m_timer;
+    rclcpp::TimerBase::SharedPtr m_slow_timer;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr m_pub_v;
     rclcpp::Publisher<std_msgs::msg::Float64MultiArray>::SharedPtr m_pub_p;
     rclcpp::Subscription<sensor_msgs::msg::JointState>::SharedPtr m_sub_j;
     rclcpp::Subscription<gazebo_msgs::msg::ModelStates>::SharedPtr m_sub_g;
+    rclcpp::Subscription<gazebo_msgs::msg::LinkStates>::SharedPtr m_sub_l;
 
     double m_velocity = 0;
     double m_steer = 0;
@@ -89,4 +98,5 @@ class terp2_controller : public rclcpp::Node {
     void log_position() const;
     void log_velocity() const;
     void log_double(const std::string &msg, const double value) const;
+    void log_link_positions() const;
 };
