@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-project(textbook urdf)
+project(paperbackURDF)
 
 find_package(catkin REQUIRED)
 
