@@ -10,6 +10,8 @@
 #include "terp2_controller.h"
 #include <gazebo_msgs/msg/detail/model_states__struct.hpp>
 #include <std_msgs/msg/detail/float64_multi_array__struct.hpp>
+#include <trajectory_msgs/msg/detail/joint_trajectory__struct.hpp>
+#include <trajectory_msgs/msg/detail/joint_trajectory_point__struct.hpp>
 
 using namespace std::chrono_literals;
 
@@ -17,15 +19,24 @@ terp2_controller::terp2_controller() : Node("terp2_controller") {
 
     // parameters
     this->declare_parameter("goal", std::vector<double>{0, 0});
+    this->declare_parameter("arm_goal", std::vector<double>{0, 0, 0, 0, 0});
+    this->declare_parameter("gripper_goal", std::vector<double>{0, 0, 0, 0});
 
     // publishers
     m_pub_p = this->create_publisher<std_msgs::msg::Float64MultiArray>("/position_controller/commands", 10);
+
     m_pub_v = this->create_publisher<std_msgs::msg::Float64MultiArray>("/velocity_controller/commands", 10);
+    m_pub_a = this->create_publisher<trajectory_msgs::msg::JointTrajectory>("/arm_controller/joint_trajectory", 10);
+    m_pub_g = this->create_publisher<trajectory_msgs::msg::JointTrajectory>("/gripper_controller/joint_trajectory", 10);
 
     // subscribers
-    m_sub_j = this->create_subscription<sensor_msgs::msg::JointState>("/joint_states", 10,
-                                                                      [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
-                                                                          this->joint_state_callback(msg);
+    // m_sub_j = this->create_subscription<sensor_msgs::msg::JointState>("/joint_states", 10,
+    //                                                                  [this](const sensor_msgs::msg::JointState::SharedPtr msg) {
+    //                                                                      this->joint_state_callback(msg);
+    //                                                                  });
+    m_sub_l = this->create_subscription<gazebo_msgs::msg::LinkStates>("/gazebo/link_states", 10,
+                                                                      [this](const gazebo_msgs::msg::LinkStates::SharedPtr msg) {
+                                                                          this->link_state_callback(msg);
                                                                       });
     m_sub_g = this->create_subscription<gazebo_msgs::msg::ModelStates>("/gazebo/model_states", 10,
                                                                        [this](const gazebo_msgs::msg::ModelStates::SharedPtr msg) {
@@ -42,15 +53,42 @@ terp2_controller::terp2_controller() : Node("terp2_controller") {
         });
 
     // init pid controllers
-    m_pid_velocity.set_k_values(5, 0.02, 0.7);
-    m_pid_steer.set_k_values(2, 0.005, 0.1);
+    m_pid_velocity.set_k_values(5, 0.17, 1.7);
+    m_pid_steer.set_k_values(0.7, 0.01, 0.1);
 
     // spin the update
     m_timer = this->create_wall_timer(500ms, [this]() { update(); });
+    m_slow_timer = this->create_wall_timer(2000ms, [this]() { slow_update(); });
 }
 
 void terp2_controller::joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg) {
     (void)msg; // supression of warning
+}
+
+void terp2_controller::link_state_callback(const gazebo_msgs::msg::LinkStates::SharedPtr msg) {
+    double units = 1000;
+    m_link_names.clear();
+    m_link_coords.clear();
+    m_link_orients.clear();
+    std::vector<std::string> names = msg->name;
+    for (size_t i = 0; i < names.size(); ++i) {
+        auto name = names[i];
+        auto pose = msg->pose[i];
+        // auto twist = msg->twist[i];
+        std::vector<double> coord = {pose.position.x * units, pose.position.y * units, pose.position.z * units};
+        Quaternion quat = {pose.orientation.w, pose.orientation.x, pose.orientation.y, pose.orientation.z};
+
+        m_link_names.push_back(name);
+        m_link_coords.push_back(coord);
+        m_link_orients.push_back(quat);
+    }
+}
+
+void terp2_controller::log_link_positions() const {
+    for (size_t i = 0; i < m_link_names.size(); ++i) {
+        RCLCPP_INFO(this->get_logger(), "%s Position: x = %.2f, y = %.2f, z = %.2f", m_link_names[i].c_str(), m_link_coords[i][0], m_link_coords[i][1], m_link_coords[i][2]);
+        // RCLCPP_INFO(this->get_logger(), "Orientation: qw = %.2f, qx = %.2f, qy = %.2f, qz = %.2f", m_orientation.w, m_orientation.x, m_orientation.y, m_orientation.z);
+    }
 }
 
 void terp2_controller::model_state_callback(const gazebo_msgs::msg::ModelStates::SharedPtr msg) {
@@ -90,18 +128,21 @@ void terp2_controller::update() {
     robot_go();
 }
 
+void terp2_controller::slow_update() {
+    log_link_positions();
+}
 void terp2_controller::pid_update() {
 
     m_velocity = std::min(m_pid_velocity.calculate(m_goal_radius, m_dt), m_velocity_max);
 
     m_steer = std::min(std::max(m_pid_steer.calculate(m_goal_theta, m_dt), -m_steer_max), m_steer_max);
 
-    //deadband near target
+    // deadband near target
     if (m_goal_radius < m_target_radius) {
         m_steer = 0;
         m_velocity = 0;
     } else if (std::abs(m_goal_theta) > m_steer_max && m_goal_radius < m_turn_radius) {
-    // goal is inside the robot's turning radius
+        // goal is inside the robot's turning radius
         m_steer = 0;
         m_velocity = m_velocity_max;
         log("Going straight until viable turning radius...");
@@ -111,12 +152,14 @@ void terp2_controller::pid_update() {
 void terp2_controller::robot_go() {
     set_robot_steering(m_steer);
     set_robot_drive_wheels(m_velocity);
+    set_robot_joint_thetas(m_joint_goals);
+    set_robot_gripper_joints(m_gripper_goals);
 }
 
 void terp2_controller::parameter_callback(const std::vector<rclcpp::Parameter> &parameters) {
     for (const auto &param : parameters) {
         if (param.get_name() == "goal") {
-            log("GOAL RECEIVED!");
+            log("LOCATION GOAL RECEIVED!");
             m_goal_xy = param.as_double_array();
 
             // reset pid controllers
@@ -124,6 +167,12 @@ void terp2_controller::parameter_callback(const std::vector<rclcpp::Parameter> &
             m_pid_velocity.reset();
 
             set_goals();
+        } else if (param.get_name() == "arm_goal") {
+            log("ARM GOAL RECEIVED!");
+            m_joint_goals = param.as_double_array();
+        } else if (param.get_name() == "gripper_goal") {
+            log("GRIPPER GOAL RECEIVED!");
+            m_gripper_goals = param.as_double_array();
         } else {
             log("UNKNOWN PARAMETER");
         }
@@ -143,6 +192,33 @@ void terp2_controller::set_robot_steering(double steer_angle) {
     m_pub_p->publish(message);
 }
 
+void terp2_controller::set_robot_joint_thetas(std::vector<double> joint_goals) {
+    using namespace trajectory_msgs::msg;
+    JointTrajectory message = JointTrajectory();
+    for (int i = 1; i < 6; ++i) {
+        message.joint_names.push_back("joint_arm_" + std::to_string(i));
+    }
+    JointTrajectoryPoint point = JointTrajectoryPoint();
+    point.positions = joint_goals;
+    point.time_from_start.sec = 1;
+    message.points.push_back(point);
+    m_pub_a->publish(message);
+}
+
+void terp2_controller::set_robot_gripper_joints(std::vector<double> joint_goals) {
+    using namespace trajectory_msgs::msg;
+    JointTrajectory message = JointTrajectory();
+    message.joint_names.push_back("joint_gripper_base");
+    message.joint_names.push_back("joint_gripper_gear");
+    message.joint_names.push_back("joint_gripper_pad1");
+    message.joint_names.push_back("joint_gripper_pad2");
+    JointTrajectoryPoint point = JointTrajectoryPoint();
+    point.positions = joint_goals;
+    point.time_from_start.sec = 1;
+    message.points.push_back(point);
+    m_pub_g->publish(message);
+}
+
 void terp2_controller::set_goals() {
     set_rotational_goal();
     set_distance_goal();
@@ -155,20 +231,20 @@ void terp2_controller::set_rotational_goal() {
     yawgoal = yawgoal * 180.0 / m_PI;
     if (yawgoal < 0.0)
         yawgoal += 360.0;
-    //log_double("YAW (Z-Axis) GOAL", yawgoal);
+    // log_double("YAW (Z-Axis) GOAL", yawgoal);
 
     // orientation angle
     double oangle = m_orientation.yawAngleDeg();
     oangle += 90.0;
     if (oangle < 0.0)
         oangle += 360.0;
-    //log_double("ORIENTATION ANGLE", oangle);
+    // log_double("ORIENTATION ANGLE", oangle);
 
     // delta angle
     double dangle = yawgoal - oangle;
     if (dangle < 0.0)
         dangle += 360.0;
-    //log_double("DELTA ANGLE", dangle);
+    // log_double("DELTA ANGLE", dangle);
 
     // fix angle to goal so that robot makes the smaller of the two turns
     if (dangle > 180.0) {

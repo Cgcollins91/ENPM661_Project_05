@@ -1,0 +1,905 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="terp2">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-2.08345565981191E-18 -3.46674454072399E-17 -0.415443814757444"
+        rpy="0 0 0" />
+      <mass
+        value="50.0" />
+      <inertia
+        ixx="50.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="50.0"
+        iyz="0.0"
+        izz="100.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="link_arm_1">
+    <inertial>
+      <origin
+        xyz="0.0102112642270262 0.0497887357729738 0.01"
+        rpy="0 0 0" />
+      <mass
+        value="1.0" />
+      <inertia
+        ixx="1.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="1.0"
+        iyz="0.0"
+        izz="1.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_arm_1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_arm_1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_arm_1"
+    type="continuous">
+    <origin
+      xyz="0 0.01 0"
+      rpy="1.5707963267949 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="link_arm_1" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="link_arm_2">
+    <inertial>
+      <origin
+        xyz="0.425 0.0479521392077195 1.25522866292093E-16"
+        rpy="0 0 0" />
+      <mass
+        value="1.0" />
+      <inertia
+        ixx="1.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="1.0"
+        iyz="0.0"
+        izz="1.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_arm_2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_arm_2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_arm_2"
+    type="continuous">
+    <origin
+      xyz="0.04995 0.06 0.01"
+      rpy="3.14159265358979 0 1.5707963267949" />
+    <parent
+      link="link_arm_1" />
+    <child
+      link="link_arm_2" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="link_arm_3">
+    <inertial>
+      <origin
+        xyz="0.375001033067741 0.0499500565491348 1.40926564518826E-08"
+        rpy="0 0 0" />
+      <mass
+        value="1.0" />
+      <inertia
+        ixx="1.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="1.0"
+        iyz="0.0"
+        izz="1.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_arm_3.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_arm_3.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_arm_3"
+    type="continuous">
+    <origin
+      xyz="0.85 0 0"
+      rpy="0 0 3.14159265358979" />
+    <parent
+      link="link_arm_2" />
+    <child
+      link="link_arm_3" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="link_arm_4">
+    <inertial>
+      <origin
+        xyz="0.0557979256916667 0.0449730992840096 -1.62569094709651E-16"
+        rpy="0 0 0" />
+      <mass
+        value="1.0" />
+      <inertia
+        ixx="1.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="1.0"
+        iyz="0.0"
+        izz="1.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_arm_4.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_arm_4.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_arm_4"
+    type="continuous">
+    <origin
+      xyz="0.75 0.09995 0"
+      rpy="3.14159265358979 0 3.14159265358979" />
+    <parent
+      link="link_arm_3" />
+    <child
+      link="link_arm_4" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="link_arm_5">
+    <inertial>
+      <origin
+        xyz="0.010211264227026 -0.0397887357729738 -1.38777878078145E-17"
+        rpy="0 0 0" />
+      <mass
+        value="1.0" />
+      <inertia
+        ixx="1.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="1.0"
+        iyz="0.0"
+        izz="1.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_arm_5.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_arm_5.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_arm_5"
+    type="continuous">
+    <origin
+      xyz="0.15 0.05 0"
+      rpy="1.5707963267949 -1.5707963267949 0" />
+    <parent
+      link="link_arm_4" />
+    <child
+      link="link_arm_5" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="link_gripper_base">
+    <inertial>
+      <origin
+        xyz="0 0.085172063756944 -1.38777878078145E-17"
+        rpy="0 0 0" />
+      <mass
+        value="1.0" />
+      <inertia
+        ixx="1.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="1.0"
+        iyz="0.0"
+        izz="1.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_gripper_base.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_gripper_base.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_gripper_base"
+    type="continuous">
+    <origin
+      xyz="0.0499999999999999 -0.05 0"
+      rpy="3.14159265358979 0 1.5707963267949" />
+    <parent
+      link="link_arm_5" />
+    <child
+      link="link_gripper_base" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="link_gripper_gear">
+    <inertial>
+      <origin
+        xyz="0 0.005 -1.38777878078145E-17"
+        rpy="0 0 0" />
+      <mass
+        value="1.0" />
+      <inertia
+        ixx="1.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="1.0"
+        iyz="0.0"
+        izz="1.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_gripper_gear.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_gripper_gear.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_gripper_gear"
+    type="continuous">
+    <origin
+      xyz="0 0.15 0"
+      rpy="3.14159265358979 0 3.14159265358979" />
+    <parent
+      link="link_gripper_base" />
+    <child
+      link="link_gripper_gear" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="link_gripper_pad1">
+    <inertial>
+      <origin
+        xyz="0.00723684210526308 -0.00730263157894756 -0.0651973684210527"
+        rpy="0 0 0" />
+      <mass
+        value="1.0" />
+      <inertia
+        ixx="1.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="1.0"
+        iyz="0.0"
+        izz="1.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_gripper_pad1.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_gripper_pad1.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_gripper_pad1"
+    type="prismatic">
+    <origin
+      xyz="0 0.2 0"
+      rpy="0 1.5707963267949 0" />
+    <parent
+      link="link_gripper_base" />
+    <child
+      link="link_gripper_pad1" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="0.055"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="link_gripper_pad2">
+    <inertial>
+      <origin
+        xyz="0.00723684210526321 0.0926973684210526 -0.0651973684210526"
+        rpy="0 0 0" />
+      <mass
+        value="1.0" />
+      <inertia
+        ixx="1.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="1.0"
+        iyz="0.0"
+        izz="1.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_gripper_pad2.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_gripper_pad2.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_gripper_pad2"
+    type="prismatic">
+    <origin
+      xyz="0 0.1 0"
+      rpy="0 -1.5708 15708" />
+    <parent
+      link="link_gripper_base" />
+    <child
+      link="link_gripper_pad2" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="0.055"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="link_axle">
+    <inertial>
+      <origin
+        xyz="-9.89050624297408E-18 0.0187933133528535 -2.40081054334435E-16"
+        rpy="0 0 0" />
+      <mass
+        value="5.0" />
+      <inertia
+        ixx="5.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="5.0"
+        iyz="0.0"
+        izz="5.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_axle.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_axle.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_axle"
+    type="fixed">
+    <origin
+      xyz="0 0 -0.66"
+      rpy="1.5708 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="link_axle" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="link_drivewheel_right">
+    <inertial>
+      <origin
+        xyz="-1.80507259650104E-16 -1.11022302462516E-16 -0.015"
+        rpy="0 0 0" />
+      <mass
+        value="20.0" />
+      <inertia
+        ixx="20.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="20.0"
+        iyz="0.0"
+        izz="20.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_drivewheel_right.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_drivewheel_right.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_drivewheel_right"
+    type="continuous">
+    <origin
+      xyz="-0.27 0 0"
+      rpy="0 -1.5707963267949 0" />
+    <parent
+      link="link_axle" />
+    <child
+      link="link_drivewheel_right" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="link_drivewheel_left">
+    <inertial>
+      <origin
+        xyz="-1.80507259650104E-16 -1.11022302462516E-16 0.015"
+        rpy="0 0 0" />
+      <mass
+        value="20.0" />
+      <inertia
+        ixx="20.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="20.0"
+        iyz="0.0"
+        izz="20.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_drivewheel_left.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_drivewheel_left.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_drivewheel_left"
+    type="continuous">
+    <origin
+      xyz="0.27 0 0"
+      rpy="0 -1.5707963267949 0" />
+    <parent
+      link="link_axle" />
+    <child
+      link="link_drivewheel_left" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="link_swivel_front">
+    <inertial>
+      <origin
+        xyz="0.00751421605065076 -0.0638265063331359 0"
+        rpy="0 0 0" />
+      <mass
+        value="1.0" />
+      <inertia
+        ixx="1.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="1.0"
+        iyz="0.0"
+        izz="1.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_swivel_front.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_swivel_front.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_swivel_front"
+    type="continuous">
+    <origin
+      xyz="0 -0.25983 -0.595"
+      rpy="1.5708 0 0" />
+    <parent
+      link="base_link" />
+    <child
+      link="link_swivel_front" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="link_swivelwheel_front">
+    <inertial>
+      <origin
+        xyz="0 0 2.62324917533259E-18"
+        rpy="0 0 0" />
+      <mass
+        value="20.0" />
+      <inertia
+        ixx="20.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="20.0"
+        iyz="0.0"
+        izz="20.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_swivelwheel_front.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_swivelwheel_front.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_swivelwheel_front"
+    type="continuous">
+    <origin
+      xyz="0 -0.0775 0"
+      rpy="0 -1.5707963267949 0" />
+    <parent
+      link="link_swivel_front" />
+    <child
+      link="link_swivelwheel_front" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="link_swivel_back">
+    <inertial>
+      <origin
+        xyz="0.00751421605065053 -0.0638265063331358 0"
+        rpy="0 0 0" />
+      <mass
+        value="1.0" />
+      <inertia
+        ixx="1.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="1.0"
+        iyz="0.0"
+        izz="1.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_swivel_back.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_swivel_back.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_swivel_back"
+    type="continuous">
+    <origin
+      xyz="0 0.25982621214848 -0.595"
+      rpy="1.5707963267949 0 3.14159265358979" />
+    <parent
+      link="base_link" />
+    <child
+      link="link_swivel_back" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="link_swivelwheel_back">
+    <inertial>
+      <origin
+        xyz="1.11022302462516E-16 0 2.23022790081543E-16"
+        rpy="0 0 0" />
+      <mass
+        value="20.0" />
+      <inertia
+        ixx="20.0"
+        ixy="0.0"
+        ixz="0.0"
+        iyy="20.0"
+        iyz="0.0"
+        izz="20.0" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_swivelwheel_back.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.898039215686275 0.917647058823529 0.929411764705882 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://terp2/meshes/link_swivelwheel_back.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="joint_swivelwheel_back"
+    type="continuous">
+    <origin
+      xyz="0 -0.0775 0"
+      rpy="3.14159265358979 -1.5707963267949 0" />
+    <parent
+      link="link_swivel_back" />
+    <child
+      link="link_swivelwheel_back" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+</robot>
