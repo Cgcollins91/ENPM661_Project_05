@@ -53,8 +53,8 @@ terp2_controller::terp2_controller() : Node("terp2_controller") {
         });
 
     // init pid controllers
-    m_pid_velocity.set_k_values(5.5, 0.2, 0.7);
-    m_pid_steer.set_k_values(1, 0.005, 0.05);
+    m_pid_velocity.set_k_values(5, 0.17, 1.7);
+    m_pid_steer.set_k_values(0.7, 0.01, 0.1);
 
     // spin the update
     m_timer = this->create_wall_timer(500ms, [this]() { update(); });
@@ -144,7 +144,7 @@ void terp2_controller::pid_update() {
     } else if (std::abs(m_goal_theta) > m_steer_max && m_goal_radius < m_turn_radius) {
         // goal is inside the robot's turning radius
         m_steer = 0;
-        m_velocity = m_velocity_max/2;
+        m_velocity = m_velocity_max;
         log("Going straight until viable turning radius...");
     }
 }
