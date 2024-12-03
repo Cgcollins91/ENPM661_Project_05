@@ -20,6 +20,7 @@ class Quaternion {
     Quaternion(double w, double x, double y, double z);
     std::vector<double> asVector() const;
     std::string toString() const;
+    std::vector<std::vector<double>> asTransformationMatrix(std::vector<double> position) const;
     [[nodiscard]] double magnitude() const;
     [[nodiscard]] double magnitudeSquared() const;
     [[nodiscard]] Quaternion normal() const;

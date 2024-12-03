@@ -50,9 +50,22 @@ void terp2_monitor::link_state_callback(const gazebo_msgs::msg::LinkStates::Shar
 
 void terp2_monitor::log_link_positions() const {
     for (size_t i = 0; i < m_link_names.size(); ++i) {
-        RCLCPP_INFO(this->get_logger(), "%s Position: x = %.2f, y = %.2f, z = %.2f", m_link_names[i].c_str(), m_link_coords[i][0], m_link_coords[i][1], m_link_coords[i][2]);
-        // RCLCPP_INFO(this->get_logger(), "Orientation: qw = %.2f, qx = %.2f, qy = %.2f, qz = %.2f", m_orientation.w, m_orientation.x, m_orientation.y, m_orientation.z);
+        auto name = m_link_names[i];
+        if (name.starts_with("terp2")) {
+            auto c_name = name.c_str();
+            RCLCPP_INFO(this->get_logger(), "%s Position: x = %.2f, y = %.2f, z = %.2f", c_name, m_link_coords[i][0], m_link_coords[i][1], m_link_coords[i][2]);
+            RCLCPP_INFO(this->get_logger(), "%s Orientation: qw = %.2f, qx = %.2f, qy = %.2f, qz = %.2f", c_name, m_link_orients[i].w, m_link_orients[i].x, m_link_orients[i].y, m_link_orients[i].z);
+            std::cout << name << " = [";
+            for (const auto &row : m_link_orients[i].asTransformationMatrix(m_link_coords[i])) {
+                for (double num : row) {
+                    std::cout << num << ",";
+                }
+                std::cout << ";";
+            }
+            std::cout << "];" << std::endl << std::endl;
+        }
     }
+    std::cout << std::endl << "----------------------------------------------------------------------" << std::endl;
 }
 
 void terp2_monitor::model_state_callback(const gazebo_msgs::msg::ModelStates::SharedPtr msg) {
@@ -80,7 +93,7 @@ void terp2_monitor::model_state_callback(const gazebo_msgs::msg::ModelStates::Sh
         m_vel_angular[0] = twist.angular.x;
         m_vel_angular[1] = twist.angular.y;
         m_vel_angular[2] = twist.angular.z;
-    } 
+    }
 }
 
 void terp2_monitor::slow_update() {

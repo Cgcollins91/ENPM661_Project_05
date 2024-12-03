@@ -1,4 +1,4 @@
-/* 
+/*
  * File: quaternion.cpp
  * Description: A class for working with quaternion data.
  * Author: James Fehrmann
@@ -8,10 +8,10 @@
  *
  */
 
-#include <sstream>
+#include "quaternion.h"
 #include <algorithm>
 #include <iomanip>
-#include "quaternion.h"
+#include <sstream>
 
 Quaternion::Quaternion(double w, double x, double y, double z) : w(w), x(x), y(y), z(z) {}
 
@@ -20,6 +20,33 @@ std::string Quaternion::toString() const {
     oss << std::fixed << std::setprecision(2);
     oss << "{" << w << ", " << x << ", " << y << ", " << z << "}";
     return oss.str();
+}
+
+std::vector<std::vector<double>> Quaternion::asTransformationMatrix(std::vector<double> position) const {
+    double r11 = 1 - (2 * y * y) - (2 * z * z);
+    double r12 = (2 * x * y) - (2 * z * w);
+    double r13 = (2 * x * z) + (2 * y * w);
+    double r21 = (2 * x * y) + (2 * z * w);
+    double r22 = 1 - (2 * x * x) - (2 * z * z);
+    double r23 = (2 * y * z) - (2 * x * w);
+    double r31 = (2 * x * z) - (2 * y * w);
+    double r32 = (2 * y * z) + (2 * x * w);
+    double r33 = 1 - (2 * x * x) - (2 * y * y);
+    if (r11 < 0.00001) r11 = 0.0;
+    if (r12 < 0.00001) r12 = 0.0;
+    if (r13 < 0.00001) r13 = 0.0;
+    if (r21 < 0.00001) r21 = 0.0;
+    if (r22 < 0.00001) r22 = 0.0;
+    if (r23 < 0.00001) r23 = 0.0;
+    if (r31 < 0.00001) r31 = 0.0;
+    if (r32 < 0.00001) r32 = 0.0;
+    if (r33 < 0.00001) r33 = 0.0;
+    std::vector<double> row1 = {r11, r12, r13, position[0]};
+    std::vector<double> row2 = {r21, r22, r23, position[1]};
+    std::vector<double> row3 = {r31, r32, r33, position[2]};
+    std::vector<double> row4 = {0.0, 0.0, 0.0, 1.0};
+    std::vector<std::vector<double>> transform = {row1, row2, row3, row4};
+    return transform;
 }
 
 Quaternion Quaternion::operator*(const Quaternion &q) const {

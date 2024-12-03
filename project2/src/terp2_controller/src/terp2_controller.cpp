@@ -58,7 +58,7 @@ terp2_controller::terp2_controller() : Node("terp2_controller") {
 
     // spin the update
     m_timer = this->create_wall_timer(500ms, [this]() { update(); });
-    m_slow_timer = this->create_wall_timer(2000ms, [this]() { slow_update(); });
+    //      m_slow_timer = this->create_wall_timer(2000ms, [this]() { slow_update(); });
 }
 
 void terp2_controller::joint_state_callback(const sensor_msgs::msg::JointState::SharedPtr msg) {
