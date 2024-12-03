@@ -17,6 +17,14 @@ import math
 def get_symbolic_DH_matrix(i):
     """ Get the symbolic DH matrix for the ith joint of the UR5 robot"""
     theta = sp.symbols(f'theta_{i}')
+
+    if i==1 or i == 2:
+        theta = theta - sp.pi / 2  # Explicitly subtract pi/2 for specific joints
+    elif i == 3:
+        theta = theta - sp.pi  # Explicitly subtract pi/2 for specific joints
+    elif i == 4 or i== 5:
+        theta = theta + sp.pi / 2
+
     alpha = sp.symbols(f'alpha_{i}')
     a     = sp.symbols(f'a_{i}')
     d     = sp.symbols(f'd_{i}')
@@ -39,10 +47,10 @@ def get_sympy_inputs(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, thet
     theta_variables= []
     indexes = ['1',       '2',    '3',     '4',      '5',       '6']
 
-    a     = [      0,       0,  737.31,  387.8,        0,        0 ]
-    alpha = [      0, -np.pi/2,      0,      0,  np.pi/2, -np.pi/2 ]
-    d     = [  183.3,        0,      0,  172.3,     95.5,    115.5 ]
-    theta = [ theta_1, theta_2, theta_3, theta_4, theta_5,  theta_6 ]
+    a     = [    0.0,      0.85,   0.75,        0,          0,        0 ]
+    alpha = [ -np.pi/2,     -np.pi,      0,  -np.pi/2,  np.pi/2,         0 ]
+    d     = [     0.76,      0.05,     0.1,     0.05,      0.2,      0.05 ]
+    theta = [  theta_1,   theta_2, theta_3,   theta_4,  theta_5,  theta_6 ]
  
 
     for index, i in zip(indexes, range(1, 7)):
@@ -65,7 +73,7 @@ def get_sympy_thetas(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, thet
     thetas = [ theta_1,        theta_2,             theta_3,        theta_4,  theta_5,   theta_6] 
     indexes = ['1',        '2',              '3',         '4',      '5',       '6']
 
-    for index, i in zip(indexes, range(1, 10)):
+    for index, i in zip(indexes, range(1, 7)):
         values[sp.symbols(f'theta_{index}')] = thetas[i-1]
 
     return values
@@ -108,12 +116,14 @@ def run_test_case(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, theta_6
     origin = sp.Matrix([0, 0, 0, 1])
     fig    = go.Figure()
 
-    theta_current, theta_variables  = get_sympy_inputs(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, theta_6=0)
+    theta_current, theta_variables           = get_sympy_inputs(
+                                                theta_1=np.pi/2, theta_2=np.pi/2, theta_3=np.pi, 
+                                                theta_4=-np.pi/2, theta_5=-np.pi/2, theta_6=0)
     home_origins, origins_padded, T_matrices = full_forward_kinematics_numeric(T_home_matrices, theta_current)
     
     
 
-    theta_current, theta_variables  = get_sympy_inputs(theta_1=theta_1, theta_2=theta_2, theta_3=theta_3, theta_4=theta_4, theta_5=theta_5, theta_6=theta_6)
+    theta_current, theta_variables           = get_sympy_inputs(theta_1=theta_1, theta_2=theta_2, theta_3=theta_3, theta_4=theta_4, theta_5=theta_5, theta_6=theta_6)
     case_origins, origins_padded, T_matrices = full_forward_kinematics_numeric(T_home_matrices, theta_current)
 
 
@@ -129,8 +139,8 @@ def run_test_case(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, theta_6
             x=[origin[0]], y=[origin[1]], z=[origin[2]],
             mode='markers+text',
             marker=dict(size=5, color='blue'),
-            text=f'Home O {i+1}',
-            name=f'Home O {i+1}'
+            text=f'Home O {i}',
+            name=f'Home O {i}'
         ))
 
         # Draw a line connecting the current origin to the next one
@@ -143,7 +153,7 @@ def run_test_case(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, theta_6
                 y=[prior_origin[1], next_origin[1]],
                 z=[prior_origin[2], next_origin[2]],
                 mode='lines',
-                name=f'Home O {i+1}',
+                name=f'Home O {i}',
                 line=dict(color='blue', width=3),
                 showlegend=False
             ))
@@ -156,8 +166,8 @@ def run_test_case(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, theta_6
             x=[origin[0]], y=[origin[1]], z=[origin[2]],
             mode='markers+text',
             marker=dict(size=5, color='orange'),
-            text=f'Case O {i+1}',
-            name=f'Case O {i+1}'
+            text=f'Case O {i}',
+            name=f'Case O {i}'
         ))
 
         # Draw a line connecting the current origin to the next one
@@ -198,12 +208,7 @@ def run_test_case(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, theta_6
     fig.show()
 
 
-    if print_origins:
-        print(case_title)
-        for i, o in enumerate([o1, o2, o3, o4, o5, o6], start=1):
-            print(f"\nOrigin {i}:")
-            sp.pprint(o, use_unicode=True)
-   
+    
     
     return home_origins, case_origins
 
@@ -346,115 +351,7 @@ def plot_test_cases(T_home_matrices):
     home_origins, case_origins = run_test_case(theta_1=theta_1, theta_2=theta_2, theta_3=theta_3, theta_4=theta_4, theta_5=theta_5, theta_6=theta_6, T_home_matrices=T_home_matrices, case_title=case_title, print_origins=False)
 
 
-def get_desired_trajectory(phase_in=0, p_start=np.array([0,0,0,1]), phase_elapsed_time=0, 
-                            stopped=False, omega=.1, linear_phase_velocity=.1, break_time=2):
-    """ 
-    Trajectory Planning
-    Parameters: phase_in:              Current phase of trajectory
-                p_start:               Starting position of Robot
-                phase_elapsed_time:    Time elapsed in the current phase
-                stopped:               Boolean indicating if the robot is stopped
-                omega:                 Angular velocity of the semi-circle
-                linear_phase_velocity: Linear velocity of the robot
-
-    Returns:    p_out:                  Desired position of the robot
-                v_out:                  Desired velocity of the robot
-                w_out:                  Desired angular velocity of the robot
-    """
-    # Trajectory Points
-    S  = [p_start[0],   p_start[1],   p_start[2]]
-    S2 = [  S[0],   S[1]-10,     S[2]]
-    A  = [ S2[0],     S2[1], S[2]-5]
-    B  = [  A[0],   A[1]+10,     A[2]]
-
-    # Phase 0: Move to the initial position
-    if phase_in == 0:
-        x_desired, y_desired, z_desired                = S[0], S[1], S[2]
-        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
-        x_desired_dot, y_desired_dot, z_desired_dot    = 0.0, 10, 10
-
-    #Phase 1: Move in a Semi-Circle
-    elif phase_in == 1:
-        theta = omega*phase_elapsed_time
-        r              = 5               # Radius of the circle
-        x_desired      = S[0]
-        y_c, z_c       = S[1]-5, S[2]
-        
-        y_desired      = y_c - r * np.cos(theta)
-        z_desired      = z_c - r * np.sin(theta)
-        
-        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
-        x_desired_dot      = 0
-        y_desired_dot      = -r * omega * np.sin(theta)
-        z_desired_dot      =  r * omega * np.cos(theta)
-
-    elif (phase==2) & stopped:
-        x_desired, y_desired, z_desired                = S2[0], S2[1], S2[2]
-        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
-        x_desired_dot, y_desired_dot, z_desired_dot    = 0.0, 0.0, 0.0
-
-    # Phase 2: Move to Point A
-    elif phase_in == 2:
-        x_desired     = A[0]
-        y_desired     = A[1]
-        if (phase_elapsed_time-break_time)*linear_phase_velocity >= 5:
-            z_desired = A[2]
-        else:
-            z_desired = A[2]+5 - (phase_elapsed_time-break_time)*linear_phase_velocity # Move desired target at speed of robot
-
-        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
-        x_desired_dot, y_desired_dot, z_desired_dot    = 0, 0, -linear_phase_velocity
-
-    elif (phase==3) & stopped:
-        x_desired, y_desired, z_desired                = A[0], A[1], A[2]
-        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
-        x_desired_dot, y_desired_dot, z_desired_dot    = 0.0, 0.0, 0.0
-
-    # Phase 3: Move to Point B
-    elif phase_in == 3:
-        x_desired     = B[0]
-        if (phase_elapsed_time-break_time) >= 10:
-            y_desired = B[1] # Phase Target
-        else:
-            y_desired = A[1] + (phase_elapsed_time-break_time)*linear_phase_velocity # Move to desired target at speed of robot
-
-        z_desired     = B[2]
-        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
-        x_desired_dot, y_desired_dot, z_desired_dot = 0, linear_phase_velocity, 0
-
-    elif (phase==4) & stopped:
-        x_desired, y_desired, z_desired                = B[0], B[1], B[2]
-        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
-        x_desired_dot, y_desired_dot, z_desired_dot    = 0.0, 0.0, 0.0
-    
-    # Phase 4: Move Back to the initial position
-    elif phase_in == 4:
-        x_desired     = S[0]
-        y_desired     = S[1]
-        if (phase_elapsed_time-break_time)*linear_phase_velocity >= 5:
-            z_desired = S[2] # Phase Target
-        else:
-            z_desired = B[2] + (phase_elapsed_time-break_time)*linear_phase_velocity # Move desired target at speed of robot
-
-        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
-        x_desired_dot, y_desired_dot, z_desired_dot = 0, 0, linear_phase_velocity
-        
-
-    else:
-        x_desired, y_desired, z_desired                = S[0], S[1], S[2]
-        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
-        x_desired_dot, y_desired_dot, z_desired_dot    = 0.0, 0.0, 0.0
-
-
-    p_out = [x_desired, y_desired, z_desired]
-    w_out = [wx_desired_dot, wy_desired_dot, wz_desired_dot]
-    v_out = [x_desired_dot, y_desired_dot, z_desired_dot]
-
-    p_out, w_out, v_out = np.array(p_out, dtype='float'), np.array(w_out, dtype='float'), np.array(v_out, dtype='float')
-    return p_out, v_out, w_out
-
-
-def plot_joints(t, q_list, p_curr_list, q_dot_list, error_list):
+def plot_joints(t, q_list, p_curr_list, q_dot_list, error_list, joint_torques):
     theta_1 = [row[0] for row in q_list]
     theta_2 = [row[1] for row in q_list]
     theta_3 = [row[2] for row in q_list]
@@ -490,6 +387,13 @@ def plot_joints(t, q_list, p_curr_list, q_dot_list, error_list):
     theta_4_dot = [math.degrees(angle) for angle in theta_4_dot]
     theta_5_dot = [math.degrees(angle) for angle in theta_5_dot]
     theta_6_dot = [math.degrees(angle) for angle in theta_6_dot]
+
+    t1 = [row[0] for row in joint_torques]
+    t2 = [row[1] for row in joint_torques]
+    t3 = [row[2] for row in joint_torques]
+    t4 = [row[3] for row in joint_torques]
+    t5 = [row[4] for row in joint_torques]
+    t6 = [row[5] for row in joint_torques]
 
     
     # Plot X, Y, Z
@@ -619,6 +523,54 @@ def plot_joints(t, q_list, p_curr_list, q_dot_list, error_list):
     plt.figure(figsize=(12, 8))
 
     plt.subplot(3, 3, 1)
+    plt.plot(t, t1, label='Joint 1 Torque', color='blue')
+    plt.ylabel('Torque (N-M)')
+    plt.title('Joint 1 Torque')
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(3, 3, 2)
+    plt.plot(t, t2, label='Joint 2 Torque', color='orange')
+    plt.ylabel('Torque (N-M)')
+    plt.title('Joint 2 Torque')
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(3, 3, 3)
+    plt.plot(t, t3, label='Joint 3 Torque', color='green')
+    plt.ylabel('Torque (N-M)')
+    plt.title('Joint 3 Torque')
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(3, 3, 4)
+    plt.plot(t, t4, label='Joint 4 Torque', color='magenta')
+    plt.ylabel('Torque (N-M)')
+    plt.title('Joint 4 Torque')
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(3, 3, 5)
+    plt.plot(t, t5, label='Joint 5 Torque', color='purple')
+    plt.ylabel('Torque (N-M)')
+    plt.title('Joint 5 Torque')
+    plt.legend()
+    plt.grid(True)
+
+    plt.subplot(3, 3, 6)
+    plt.plot(t, t6, label='Joint 6 Torque', color='black')
+    plt.ylabel('Torque (N-M)')
+    plt.title('Joint 6 Torque')
+    plt.legend()
+    plt.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+
+    plt.figure(figsize=(12, 8))
+
+    plt.subplot(3, 3, 1)
     plt.plot(t, theta_1_dot, label='Theta 1 Velocity', color='blue')
     plt.ylabel('Velocity (degrees/s)')
     plt.title('Theta 1 Velocity')
@@ -665,103 +617,458 @@ def plot_joints(t, q_list, p_curr_list, q_dot_list, error_list):
     plt.tight_layout()
     plt.show()
 
+def sub_fixed_and_lambdify(mat_in, start_values_fixed, theta_variables):
+    ''' This function takes in the symbolic transformation matrices and Jacobian, and returns lambdified functions'''
     
+    mat_in_subs   = mat_in.subs(start_values_fixed)
 
-#  Get Synbolic Transformation Matrices for each joint
-T01  = get_symbolic_DH_matrix('1')
-T2   = get_symbolic_DH_matrix('2')
-T3   = get_symbolic_DH_matrix('3')
-T4   = get_symbolic_DH_matrix('4')
-T5   = get_symbolic_DH_matrix('5')
-T6   = get_symbolic_DH_matrix('6')
+    #  Flatten Jacobian for lambdification
+    mat_in_flat = mat_in_subs.reshape(mat_in_subs.shape[0]*mat_in_subs.shape[1], 1)
+    mat_in_func = sp.lambdify(theta_variables, mat_in_flat, modules='numpy')
 
-# Compute the symbolic transformation matrices for each joint relative to the base frame
-T02  = T01*T2
-T03  = T02*T3
-T04  = T03*T4
-T05  = T04*T5
-T06  = T05*T6
 
-T_home_matrices = [T01,  T02, T03, T04, T05, T06]
-o0              = sp.Matrix([0, 0, 0, 1])
+    return mat_in_func, mat_in_subs
 
-# Origins of each joint
-home_origins_sym = [o0] + [T * o0 for T in T_home_matrices]
+def get_lamdified(J, J_CoM, joint_torques, T_home_matrices, start_values_fixed, theta_variables):
+    ''' This function takes in the symbolic transformation matrices and Jacobian, and returns lambdified functions'''
+    [T01, T02, T03, T04, T05, T06] = T_home_matrices
+    J_func, J_subs         = sub_fixed_and_lambdify(J,   start_values_fixed, theta_variables)
+    J_CoM_func, J_CoM_subs = sub_fixed_and_lambdify(J_CoM, start_values_fixed, theta_variables)
+    T01_func, T01_subs     = sub_fixed_and_lambdify(T01, start_values_fixed, theta_variables)
+    T02_func, T02_subs     = sub_fixed_and_lambdify(T02, start_values_fixed, theta_variables)
+    T03_func, T03_subs     = sub_fixed_and_lambdify(T03, start_values_fixed, theta_variables)
+    T04_func, T04_subs     = sub_fixed_and_lambdify(T04, start_values_fixed, theta_variables)
+    T05_func, T05_subs     = sub_fixed_and_lambdify(T05, start_values_fixed, theta_variables)
+    T06_func, T06_subs     = sub_fixed_and_lambdify(T06, start_values_fixed, theta_variables)
 
-# Z vectors of each joint
-Z0        = sp.Matrix([0, 0, 1])
-Z_vectors = [Z0] + [T[:3, 2] for T in T_home_matrices]
+    joint_torques_func, joint_torques_subs = sub_fixed_and_lambdify(joint_torques, start_values_fixed, theta_variables)
 
-# Compute Jacobian Using the First Method leveraging each joint velocity is function of r*theta_dot, where r can be 
-# calculated from the cross product of Z and L (O_n - O_i-1)
-J = []
-for i in range(1, 7):
-    Z_i_1   = Z_vectors[i-1]
-    o_i_1   = home_origins_sym[i-1][0:3, 0]
-    L       = home_origins_sym[6][0:3, 0] - o_i_1
-    J_i_0   = Z_i_1.cross(L)
-    J_i     = J_i_0.col_join(Z_i_1)
-    J.append(J_i)
+    func_mats = { 'J_func': J_func,    'J_CoM_func': J_CoM_func,
+                 'joint_torques_func': joint_torques_func,
+                 'T01_func': T01_func, 'T02_func'  : T02_func, 
+                 'T03_func': T03_func, 'T04_func'  : T04_func, 
+                 'T05_func': T05_func, 'T06_func'  : T06_func}
+    
+    subs_mats = { 'J_subs': J_subs,    'J_CoM_subs': J_CoM_subs,
+                'joint_torques_subs': joint_torques_subs,
+                 'T01_subs': T01_subs, 'T02_subs'  : T02_subs, 
+                 'T03_subs': T03_subs, 'T04_subs'  : T04_subs, 
+                 'T05_subs': T05_subs, 'T06_subs'  : T06_subs}
 
-J  = sp.Matrix.hstack(*J)
+    return func_mats, subs_mats
 
+def get_inertia_tensor(i):
+    # NOT USED IN HOMEWORK
+    # Link 1
+    if i == 1:
+        Ixx = 21031638.84	
+        Ixy = 1.96	
+        Ixz = 7.27
+        Iyx = 1.96	
+        Iyy = 20739417.85	
+        Iyz = -1270611.01
+        Izx = 7.27	
+        Izy = -1270611.01	
+        Izz = 1209353.75
+    
+    elif i == 2: # Link 2
+        Ixx = 168766539.22	
+        Ixy = -616.13	
+        Ixz = 2144.80
+        Iyx = -616.13	
+        Iyy = 141311550.02	
+        Iyz = -57583858.50
+        Izx = 2144.80	
+        Izy = -57583858.50
+        Izz = 29041369.78
+
+    elif i == 3:
+        # Link 3
+        Ixx = 237736457.80
+        Ixy = -42.62
+        Ixz = 349.73
+        Iyx = -42.62
+        Iyy = 236687453.94
+        Iyz = -13865529.11
+        Izx = 349.73
+        Izy = -13865529.11
+        Izz = 1495860.09
+
+    elif i == 4:
+        #Link 4
+        Ixx = 144611320.32
+        Ixy = 3.69
+        Ixz = 0.32
+        Iyx = 3.69	
+        Iyy = 139216600.79
+        Iyz = -27063652.79
+        Izx = 0.32	
+        Izy = -27063652.79
+        Izz = 5587457.88
+
+    elif i == 5:
+        #Link 5
+        Ixx = 156009135.98
+        Ixy = 1.06
+        Ixz = 3.34
+        Iyx = 1.06
+        Iyy = 150468519.15
+        Iyz = -28605700.82
+        Izx = 3.34
+        Izy = -28605700.82
+        Izz = 5704521.06
+
+    elif i == 6:
+        #Link 6
+        Ixx = 76033893.64
+        Ixy = -1.93
+        Ixz = 6.77
+        Iyx = -1.93
+        Iyy = 70332861.38
+        Iyz = -20030454.36
+        Izx = 6.77
+        Izy = -20030454.36
+        Izz = 5775378.88
+    else:
+        print("Invalid Link Number")
+
+    # Convert from grams*mm^2 to kg * m^2
+    Ixx, Ixy, Ixz, Iyx, Iyy, Iyz, Izx, Izy, Izz = Ixx/10**9, Ixy/10**9, Ixz/10**9, Iyx/10**9, Iyy/10**9, Iyz/10**9, Izx/10**9, Izy/10**9, Izz/10**9
+    return sp.Matrix([[Ixx, Ixy, Ixz], [Ixy, Iyy, Iyz], [Ixz, Iyz, Izz]])
+
+def get_intertial_matrices():
+    # NOT USED IN HOMEWORK
+    inertial_mats = []
+    for i in range(1,7):
+        inertial_mats.append(get_inertia_tensor(i))
+    return inertial_mats
+
+def get_D_of_q(inertial_mats, J, theta_current, T_i_com, m):
+    # NOT USED IN HOMEWORK
+    D = 0
+    for i in range(6):
+        ith_column   = J.subs(theta_current)[:, i]
+        T_i_com_subs = T_i_com[i].subs(theta_current)
+        inerital_mat = inertial_mats[i]
+        v_com_i      = sp.Matrix([ith_column[0], ith_column[1], ith_column[2]])
+        w_com_i      = sp.Matrix([ith_column[3], ith_column[4], ith_column[5]])
+        
+        R_0i         = T_i_com_subs[:3, :3]
+        I_base       = R_0i * inerital_mat * R_0i.T
+        omega_i      = (1/2) * w_com_i.T * I_base * w_com_i
+        linear_i     =(1/2) * m[i]*(v_com_i.T * v_com_i)
+        D           += (omega_i + linear_i)[0]
+    return D
+
+def get_robot_transformations():
+    ''' This function computes the symbolic transformation and Jacobian matrices for each joint according 
+    to our DH parameters'''
+
+    #  Get Synbolic Transformation Matrices for each joint
+    T01   = get_symbolic_DH_matrix('1')
+    T12   = get_symbolic_DH_matrix('2')
+    T23   = get_symbolic_DH_matrix('3')
+    T34   = get_symbolic_DH_matrix('4')
+    T45   = get_symbolic_DH_matrix('5')
+    T56   = get_symbolic_DH_matrix('6')
+
+    # Compute the symbolic transformation matrices for each joint relative to the base frame
+    T02  = T01*T12
+    T03  = T02*T23
+    T04  = T03*T34
+    T05  = T04*T45
+    T06  = T05*T56
+
+    T_home_matrices = [T01,  T02, T03, T04, T05, T06]
+    o0              = sp.Matrix([0, 0, 0, 1])
+
+    # Origins of each joint
+    home_origins_sym = [o0] + [T * o0 for T in T_home_matrices]
+
+    # Z vectors of each joint
+    Z0        = sp.Matrix([0, 0, 1])
+    Z_vectors = [Z0] + [T[:3, 2] for T in T_home_matrices]
+
+    # Compute Jacobian Using the First Method leveraging each joint velocity is function of r*theta_dot, where r can be 
+    # calculated from the cross product of Z and L (O_n - O_i-1)
+    J = []
+    for i in range(1, 7):
+        Z_i_1   = Z_vectors[i-1]
+        o_i_1   = home_origins_sym[i-1][0:3, 0]
+        L       = home_origins_sym[6][0:3, 0] - o_i_1
+        J_i_0   = Z_i_1.cross(L)
+        J_i     = J_i_0.col_join(Z_i_1)
+        J.append(J_i)
+
+    J  = sp.Matrix.hstack(*J)
+
+    return T_home_matrices, J
+
+def get_CoM_parameters(T_home_matrices):
+    ''' This function computes the symbolic transformation and Jacobian matrices for our Center of Masses'''
+    print("COM based on hw3 and wrong DH parameters")
+    r_1   = sp.Matrix([          0,   0,    -.015, 1 ]) # Frame 1 Coordinates
+    r_2   = sp.Matrix([  2/3*.7371,   0,   -.1723, 1 ]) # Frame 2 Coordinates
+    r_3   = sp.Matrix([     -.1939,   0,       0,  1 ]) # Frame 3 Coordinates
+    r_4   = sp.Matrix([          0,   0,       0,  1 ]) # Frame 4 Coordinates
+    r_5   = sp.Matrix([          0,   0,       0,  1 ]) # Frame 5 Coordinaates
+    r_6   = sp.Matrix([          0,   0,    -.02,  1 ]) # Frame 6 Coordinates
+
+    r_com          = [r_1, r_2, r_3, r_4, r_5, r_6]
+    p_com_sym      = [T_home_matrices[i] * r_com[i]  for i in range(6)]
+
+    m = sp.Matrix([0.9, 1.6, 0.8, 0.4, 0.2, .1 ]) # kg
+    g = sp.Matrix([0, 0, -9.81, 0, 0, 0]) # Gravity Vector, m/s^2
+    F = [m[i]*g for i in range(6)]
+
+
+    # Z vectors of each link's CoM
+    Z0        = sp.Matrix([0, 0, 1])
+    Z_vectors_CoM = [T[:3, 2] for T in T_home_matrices]
+
+    # Compute Jacobian Using the First Method leveraging each joint velocity is function of r*theta_dot, where r can be 
+    # calculated from the cross product of Z and L (O_n - O_i-1)
+    J_com = []
+    for i in range(6):
+        Z_i_1   = Z_vectors_CoM[i]
+        o_i_1   = p_com_sym[i][0:3, 0]
+        L       = p_com_sym[5][0:3, 0] - o_i_1
+        J_i_0   = Z_i_1.cross(L)
+        J_i     = J_i_0.col_join(Z_i_1)
+        J_com.append(J_i)
+    J_com  = sp.Matrix.hstack(*J_com)
+    return J_com, p_com_sym, F
+
+def get_joint_torques(J_CoM, F):
+    F_n   = 5 # Newtons
+    J_i, G = [], []
+    for i in range(6):
+        J_i = J_CoM[:, i]
+        G_i = J_i.T * F[i]
+        G.append(G_i)
+
+    G     = sp.Matrix(G)                      # 6x1 force vector
+    F_ext = sp.Matrix([0, 0, -F_n, 0, 0, 0])  # 6x1 force vector
+
+    tau = J_CoM.T * F_ext
+
+    joint_torques = G + tau
+
+    print("Symbolic G(q)")
+    sp.pprint(G)
+    
+    return joint_torques
+
+
+
+#  MAIN SETUP
+
+# Get the symbolic transformation matrices and Jacobian for our DH Reference Frames
+T_home_matrices, J  = get_robot_transformations()
+
+# Get the symbolic transformation matrices and Jacobian for our DH Reference Frames
+J_CoM, p_com_sym, F = get_CoM_parameters(T_home_matrices)
+
+# Get Symbolic Joint Torques for each Link 
+joint_torques       = get_joint_torques(J_CoM, F)
+
+print("Symbolic Jacobian for DH Frames")
 sp.pprint(J, use_unicode=True)
 
+print("Symbolic Jacobian for CoM Frames")
+sp.pprint(J_CoM, use_unicode=True)
 
-# Input all fixed values into our symbolic transformation Matrices, Than lambdify the Jacobian with only the theta variables as inputs
+print("Symbolic Joint Torques")
+sp.pprint(joint_torques, use_unicode=True)
+
+# Input all fixed values into our symbolic transformation Matrices, Than lambdify with only the theta variables as inputs
 # This step vastly increases the speed of computation later on
 origin  = sp.Matrix([0, 0, 0, 1])
-theta1_start, theta2_start, theta3_start, theta_4_start, theta_5_start, theta_6_start  = np.pi/2, 0, np.pi/2, 0, 0, 0
+theta1_start, theta2_start, theta3_start     =  0, 0, 0
+theta_4_start, theta_5_start, theta_6_start  =  0, 0, 0
 
 start_values, theta_variables       = get_sympy_inputs(theta_1=theta1_start, theta_2=theta2_start, theta_3=theta3_start, theta_4=theta_4_start, theta_5=theta_5_start, theta_6=theta_6_start)
 keys_to_remove                      = theta_variables
 start_values_fixed                  = {key: start_values[key] for key in start_values if key not in keys_to_remove}
 theta_current                       = get_sympy_thetas(theta_1=theta1_start, theta_2=theta2_start, theta_3=theta3_start, theta_4=theta_4_start, theta_5=theta_5_start, theta_6=theta_6_start)
 
-J_subs   = J.subs(start_values_fixed)
-T06_subs = T06.subs(start_values_fixed)
+func_mats, subs_mats = get_lamdified(J, J_CoM, joint_torques, T_home_matrices, start_values_fixed, theta_variables)
+J_func, T06_func, J_CoM_func = func_mats['J_func'], func_mats['T06_func'], func_mats['J_CoM_func']
 
-# Flatten Jacobian for lambdification
-J_flat = J_subs.reshape(J_subs.shape[0]*J_subs.shape[1], 1)
-J_func = sp.lambdify(theta_variables, J_flat, modules='numpy')
+T01_subs   = subs_mats['T01_subs']
+T02_subs   = subs_mats['T02_subs']
+T03_subs   = subs_mats['T03_subs']
+T04_subs   = subs_mats['T04_subs']
+T05_subs   = subs_mats['T05_subs']
+T06_subs   = subs_mats['T06_subs']
+J_CoM_subs = subs_mats['J_CoM_subs']    
 
-# Flatten T06 for lambdification
-T06_flat = T06_subs.reshape(T06_subs.shape[0]*T06_subs.shape[1], 1)
-T06_func = sp.lambdify(theta_variables, T06_flat, modules='numpy')
+torque_subs = subs_mats['joint_torques_subs']
+torque_func = func_mats['joint_torques_func']
 
 
-# %% Run Test Cases and Plot Home vs. Test Case
+
+#  Run Test Cases and Plot Home vs. Test Case
 plot_test_cases(T_home_matrices)
 
 
-# %% Run Custom Case
-theta_1, theta_2, theta_3, theta_4,  theta_5, theta_6 = np.pi/2, 0, 0, np.pi/2, 0, 0
-case_title = "Case 5, theta_1 = pi/2, theta_4 = pi/2"   
-home_origins, case_origins = run_test_case(theta_1=theta_1, theta_2=theta_2, theta_3=theta_3, theta_4=theta_4, theta_5=theta_5, theta_6=theta_6, T_home_matrices=T_home_matrices, case_title=case_title, print_origins=False)
+
+# %% Run Custom Case (Starting Position for Trajectory)
+theta_1_start, theta_2_start, theta_3_start = 0, -np.pi/2, 0,
+theta_4_start, theta_5_start, theta_6_start = 0,        0, 0 
+
+case_title = "Starting Position (Case) to Draw Trajectory"   
+home_origins, case_origins = run_test_case(
+    theta_1=theta_1_start, 
+    theta_2=theta_2_start, 
+    theta_3=theta_3_start, 
+    theta_4=theta_4_start, 
+    theta_5=theta_5_start, 
+    theta_6=theta_6_start, 
+    T_home_matrices=T_home_matrices,
+    case_title=case_title, 
+    print_origins=False)
+
+
+def get_desired_trajectory(phase_in=0, p_start=np.array([0,0,0,1]), phase_elapsed_time=0, 
+                            stopped=False, omega=.1, linear_phase_velocity=.1, break_time=2,
+                            r=.05, a=.05, b=.1):
+    """ 
+    Trajectory Planning, Draw Half Crlce + 3/4 of Rectangle below Half-Circle on the X-Z Plane
+    Parameters: phase_in:              Current phase of trajectory
+                p_start:               Starting position of Robot
+                phase_elapsed_time:    Time elapsed in the current phase
+                stopped:               Boolean indicating if the robot is stopped
+                omega:                 Angular velocity of the semi-circle
+                linear_phase_velocity: Linear velocity of the robot
+                r:                     Radius of the semi-circle
+                a:                     Distance between S and A
+                b:                     Distance between A and B
+
+    Returns:    p_out:                  Desired position of the robot
+                v_out:                  Desired velocity of the robot
+                w_out:                  Desired angular velocity of the robot
+    """
+    # Trajectory Points
+
+    S  = [p_start[0],   p_start[1],   p_start[2]]
+    S2 = [  S[0]-b,    S[1],     S[2] ]
+    A  = [ S2[0],     S2[1],   S[2]-a ]
+    B  = [  A[0]+b,   A[1],     A[2] ]
+
+    # Phase 0: Move to the initial position
+    if phase_in == 0:
+        x_desired, y_desired, z_desired                = S[0], S[1], S[2]
+        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
+        x_desired_dot, y_desired_dot, z_desired_dot    = 10.0, 0.0, 10
+
+    #Phase 1: Move in a Semi-Circle
+    elif phase_in == 1:
+        theta = omega*phase_elapsed_time
+       
+        y_desired      = S[1]
+        x_c, z_c       = S[0]-r, S[2]
+        
+        x_desired      = x_c + r * np.cos(theta)
+        z_desired      = z_c + r * np.sin(theta)
+        
+        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
+        y_desired_dot      = 0
+        x_desired_dot      =  -r * omega * np.sin(theta)
+        z_desired_dot      =   r * omega * np.cos(theta)
+
+    elif (phase==2) & stopped:
+        x_desired, y_desired, z_desired                = S2[0], S2[1], S2[2]
+        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
+        x_desired_dot, y_desired_dot, z_desired_dot    = 0.0, 0.0, 0.0
+
+    # Phase 2: Move to Point A
+    elif phase_in == 2:
+        x_desired     = A[0]
+        y_desired     = A[1]
+        if (phase_elapsed_time-break_time)*linear_phase_velocity >= a:
+            z_desired = A[2]
+        else:
+            z_desired = A[2]+a - (phase_elapsed_time-break_time)*linear_phase_velocity # Move desired target at speed of robot
+
+        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
+        x_desired_dot, y_desired_dot, z_desired_dot    = 0, 0, -linear_phase_velocity
+
+    elif (phase==3) & stopped:
+        x_desired, y_desired, z_desired                = A[0], A[1], A[2]
+        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
+        x_desired_dot, y_desired_dot, z_desired_dot    = 0.0, 0.0, 0.0
+
+    # Phase 3: Move to Point B
+    elif phase_in == 3:
+        y_desired     = B[1]
+        if (phase_elapsed_time-break_time)*linear_phase_velocity >= b:
+            x_desired = B[0] # Phase Target
+        else:
+            x_desired = A[0] + (phase_elapsed_time-break_time)*linear_phase_velocity # Move to desired target at speed of robot
+
+        z_desired     = B[2]
+        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
+        x_desired_dot, y_desired_dot, z_desired_dot = linear_phase_velocity, 0, 0
+
+    elif (phase==4) & stopped:
+        x_desired, y_desired, z_desired                = B[0], B[1], B[2]
+        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
+        x_desired_dot, y_desired_dot, z_desired_dot    = 0.0, 0.0, 0.0
+    
+    # Phase 4: Move Back to the initial position
+    elif phase_in == 4:
+        x_desired     = S[0]
+        y_desired     = S[1]
+        if (phase_elapsed_time-break_time)*linear_phase_velocity >= a:
+            z_desired = S[2] # Phase Target
+        else:
+            z_desired = B[2] + (phase_elapsed_time-break_time)*linear_phase_velocity # Move desired target at speed of robot
+
+        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
+        x_desired_dot, y_desired_dot, z_desired_dot = 0, 0, linear_phase_velocity
+        
+
+    else:
+        x_desired, y_desired, z_desired                = S[0], S[1], S[2]
+        wx_desired_dot, wy_desired_dot, wz_desired_dot = 0.0, 0.0, 0.0
+        x_desired_dot, y_desired_dot, z_desired_dot    = 0.0, 0.0, 0.0
+
+
+    p_out = [x_desired, y_desired, z_desired]
+    w_out = [wx_desired_dot, wy_desired_dot, wz_desired_dot]
+    v_out = [x_desired_dot, y_desired_dot, z_desired_dot]
+
+    p_out, w_out, v_out = np.array(p_out, dtype='float'), np.array(w_out, dtype='float'), np.array(v_out, dtype='float')
+    return p_out, v_out, w_out
+
 
 # %% Robot Control and Trajectory
 
 # Constants and initial parameters, Angles in Radians
-origin = np.array([0, 0, 0, 1])
-theta1_start, theta2_start, theta3_start, theta_4_start, theta_5_start, theta_6_start = 0, np.pi/2, -np.pi/2, np.pi/2, 0, 0
-T          = 25               # Total time duration
+origin     = np.array([0, 0, 0, 1])
+T          = 200              # Total time duration (s)
 num_points = 1000             # Number of points along the trajectory
 dt         = T / num_points   # Time step
 
-omega                 = 2 * np.pi / 8  # Angular speed for semi-circle trajectory
-linear_phase_velocity = 2.5            # cm/s
-break_time            = 1              # seconds
+# Trajectory Variables
+r                     = 50/1000  # m
+a                     = 50/1000  # m
+b                     = 100/1000 # m
+omega                 = 2 * np.pi / 150  # Angular speed for semi-circle trajectory
+linear_phase_velocity = 25 / 10000       # m/s
+break_time            = 10                # seconds
 
 # PID Gains
-k_p = 0.01   # Proportional gain
-k_i = 0.01   # Integral gain
+k_p = 0.03   # Proportional gain
+k_i = 0.02   # Integral gain
 k_d = 0.01   # Derivative gain
 
 # Initialize variables
 theta_current = get_sympy_thetas(
-    theta_1=theta1_start,
-    theta_2=theta2_start,
-    theta_3=theta3_start,
+    theta_1=theta_1_start,
+    theta_2=theta_2_start,
+    theta_3=theta_3_start,
     theta_4=theta_4_start,
     theta_5=theta_5_start,
     theta_6=theta_6_start
@@ -771,7 +1078,7 @@ T06_numeric_flat     = T06_func(*theta_numeric_values)
 T06_numeric          = np.array(T06_numeric_flat).reshape(4, 4)
 p_start              = T06_numeric @ origin
 
-q           = np.array([theta1_start, theta2_start, theta3_start, theta_4_start, theta_5_start, theta_6_start], dtype=float)
+q           = np.array([theta_1_start, theta_2_start, theta_3_start, theta_4_start, theta_5_start, theta_6_start], dtype=float)
 v_eff       = np.zeros(6)
 p_curr_list = []
 q_list      = []
@@ -789,6 +1096,10 @@ phase               = 1
 t_start_phase       = 0
 phase_elapsed_time  = 0
 semi_circle_delta_t = np.pi / omega # Time required to complete 180 degrees of circle based on omega
+
+
+
+joint_torques = []
 
 def update_joint_positions(q, v_eff, dt):
     # Calculate joint velocities and update joint positions
@@ -816,9 +1127,9 @@ def control_loop(phase, q, curr_t, t_start_phase, coord_error_int, coord_error_p
     stopped = False
     phase_duration = {
         1: semi_circle_delta_t,
-        2: break_time + (5 / linear_phase_velocity),
-        3: break_time + (10 / linear_phase_velocity),
-        4: break_time + (5 / linear_phase_velocity)
+        2: break_time + (a / linear_phase_velocity),
+        3: break_time + (b / linear_phase_velocity),
+        4: break_time + (a / linear_phase_velocity)
     }
 
     while True:
@@ -842,7 +1153,10 @@ def control_loop(phase, q, curr_t, t_start_phase, coord_error_int, coord_error_p
             stopped=stopped,
             omega=omega,
             linear_phase_velocity=linear_phase_velocity,
-            break_time=break_time
+            break_time=break_time,
+            r=r,
+            a=a,
+            b=b
         )
 
         # Get current position
@@ -851,11 +1165,16 @@ def control_loop(phase, q, curr_t, t_start_phase, coord_error_int, coord_error_p
         T06_numeric      = np.array(T06_numeric_flat).reshape(4, 4)
         p_curr           = T06_numeric @ origin
 
+        # Get Current Torques
+        torques = torque_func(*q_sym)
+        joint_torques.append(torques)
+
         # Compute errors
         coord_error       = p_desired - p_curr[:3]
         coord_error_int  += coord_error * dt
         coord_error_deriv = (coord_error - coord_error_prev) / dt
         coord_error_prev  = coord_error
+        
 
         # Control signal
         error_norm = np.linalg.norm(coord_error)
@@ -881,7 +1200,7 @@ def control_loop(phase, q, curr_t, t_start_phase, coord_error_int, coord_error_p
 
         # Update time
         curr_t += dt
-
+        
     return q, curr_t, coord_error_int, coord_error_prev, False  
 
 # Main Trajectory PLanning and Control loop
@@ -896,4 +1215,5 @@ while phase <= 4:
         coord_error_int   = np.zeros(3)
         coord_error_prev  = np.zeros(3)
 
-plot_joints(t_plot, q_list, p_curr_list, q_dot_list, error_list)
+plot_joints(t_plot, q_list, p_curr_list, q_dot_list, error_list, joint_torques)
+
