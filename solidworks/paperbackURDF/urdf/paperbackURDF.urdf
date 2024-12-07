@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="paperbackURDF">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="-7.57249247507667E-18 -6.17351493276824E-18 0.0125"
+        rpy="0 0 0" />
+      <mass
+        value="0.0755952272775" />
+      <inertia
+        ixx="0.000196862571035156"
+        ixy="5.5582813347856E-20"
+        ixz="-3.12230512928769E-22"
+        iyy="7.74158123344331E-05"
+        iyz="1.15717994553341E-20"
+        izz="0.000266403880528183" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://paperbackURDF/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="1 1 1 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://paperbackURDF/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+</robot>
