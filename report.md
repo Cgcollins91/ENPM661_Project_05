@@ -1,6 +1,7 @@
 # ENPM662 Project 2 Final Report
 ## The Library Robot
 Class: ENPM662 - Introduction to Robot Modeling
+
 Due: November 8, 2024
 
 # Team Members
