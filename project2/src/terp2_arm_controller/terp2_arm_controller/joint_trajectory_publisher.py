@@ -309,7 +309,7 @@ class JointTrajectoryPublisher(Node):
         ]
 
         self.joint_limits = [
-            (  -np.pi/2,   np.pi),  # Joint 1
+            (  -np.pi,   np.pi),  # Joint 1
             (-2*np.pi, 2*np.pi),  # Joint 2
             (-2*np.pi, 2*np.pi), # Joint 3
             (-2*np.pi, 2*np.pi),  # Joint 4

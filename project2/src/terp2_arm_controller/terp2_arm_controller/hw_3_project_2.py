@@ -19,11 +19,11 @@ def get_symbolic_DH_matrix(i):
     theta = sp.symbols(f'theta_{i}')
 
     if i==1 or i == 2:
-        theta = theta - sp.pi / 2  # Explicitly subtract pi/2 for specific joints
+        theta = theta - sp.pi / 2  # Subtract pi/2 for joint 1 and 2
     elif i == 3:
-        theta = theta - sp.pi  # Explicitly subtract pi/2 for specific joints
+        theta = theta - sp.pi      # Subtract pi for joint 3
     elif i == 4 or i== 5:
-        theta = theta + sp.pi / 2
+        theta = theta + sp.pi / 2 # Add pi/2 for joint 4 & 5
 
     alpha = sp.symbols(f'alpha_{i}')
     a     = sp.symbols(f'a_{i}')
@@ -47,10 +47,10 @@ def get_sympy_inputs(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, thet
     theta_variables= []
     indexes = ['1',       '2',    '3',     '4',      '5',       '6']
 
-    a     = [    0.0,      0.85,   0.75,        0,          0,        0 ]
+    a     = [    0.0,      0.85,      0.75,        0,         0,         0 ]
     alpha = [ -np.pi/2,     -np.pi,      0,  -np.pi/2,  np.pi/2,         0 ]
-    d     = [     0.76,      0.05,     0.1,     0.05,      0.2,      0.05 ]
-    theta = [  theta_1,   theta_2, theta_3,   theta_4,  theta_5,  theta_6 ]
+    d     = [     0.76,      0.05,     0.1,     0.05,      0.2,       0.05 ]
+    theta = [  theta_1,   theta_2, theta_3,   theta_4,  theta_5,   theta_6 ]
  
 
     for index, i in zip(indexes, range(1, 7)):
@@ -911,9 +911,91 @@ torque_func = func_mats['joint_torques_func']
 #  Run Test Cases and Plot Home vs. Test Case
 plot_test_cases(T_home_matrices)
 
+# %%
+# Define joint ranges
+joint_range_1 = np.linspace(-np.pi/2,     np.pi/2, 4)  # Adjust range and resolution as needed
+joint_range_2 = np.linspace(-2*np.pi, 2*np.pi, 8) 
 
+
+#Numerical evaluation of transformations
+def evaluate_transform(T, joint_values):
+    subs_dict = {f'q{i+1}': joint_values[i] for i in range(6)}
+    return np.array(T.subs(subs_dict).evalf()).astype(float)
+
+# Compute workspace points
+workspace_points = []
+for q1 in joint_range_1:
+    for q2 in joint_range_2:
+        for q3 in joint_range_2:
+            for q4 in joint_range_2:
+                for q5 in joint_range_2:
+                    for q6 in joint_range_2:
+                        joint_values = [q1, q2, q3, q4, q5, q6]
+                        q_sym            = get_thetas(get_sympy_thetas(*joint_values))
+                        T06_numeric_flat = T06_func(*q_sym)
+                        T06_numeric      = np.array(T06_numeric_flat).reshape(4, 4)
+                        p_curr           = T06_numeric @ origin
+                        workspace_points.append([float(coord) for coord in p_curr[:3]])
+
+
+
+
+workspace_points = np.array(workspace_points)
+# Extract X, Y, Z coordinates
+x, y, z = workspace_points[:, 0], workspace_points[:, 1], workspace_points[:, 2]
+
+# Create 3D Mesh plot
+fig = go.Figure()
+
+# Mesh for shaded workspace
+fig.add_trace(go.Mesh3d(
+    x=x, y=y, z=z,
+    color='blue',
+    opacity=0.5,
+    alphahull=5  # Adjust to control the surface tightness
+))
+
+# Scatter plot for discrete points (optional)
+fig.add_trace(go.Scatter3d(
+    x=x, y=y, z=z,
+    mode='markers',
+    marker=dict(size=2, color='red', opacity=0.8),
+    name='Workspace Points'
+))
+
+# Customize layout
+fig.update_layout(
+    scene=dict(
+        xaxis_title='X',
+        yaxis_title='Y',
+        zaxis_title='Z',
+    ),
+    title="Robot Workspace",
+)
+
+# Show interactive plot
+fig.show()
+
+# %%
+fig = go.Figure()
+workspace_points = np.array(workspace_points)
+# Extract X, Y, Z coordinates
+x, y, z = workspace_points[:, 0], workspace_points[:, 1], workspace_points[:, 2]
+
+
+# Mesh for shaded workspace
+fig.add_trace(go.Mesh3d(
+    x=x, y=y, z=z,
+    color='blue',
+    opacity=0.5,
+    alphahull=5  # Adjust to control the surface tightness
+))
+fig.show()
 
 # %% Run Custom Case (Starting Position for Trajectory)
+# Define joint ranges
+joint_ranges = [np.linspace(-180, 180, 10) for _ in range(6)]  # Adjust range and resolution as needed
+
 theta_1_start, theta_2_start, theta_3_start = 0, -np.pi/2, 0,
 theta_4_start, theta_5_start, theta_6_start = 0,        0, 0 
 
