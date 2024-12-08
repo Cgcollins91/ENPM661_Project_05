@@ -47,7 +47,7 @@ def get_sympy_inputs(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, thet
     theta_variables= []
     indexes = ['1',       '2',    '3',     '4',      '5',       '6']
 
-    a     = [    0.0,      0.85,      0.75,        0,         0,         0 ]
+    a     = [    0.0,         0.85,   0.75,        0,         0,         0 ]
     alpha = [ -np.pi/2,     -np.pi,      0,  -np.pi/2,  np.pi/2,         0 ]
     d     = [     0.76,      0.05,     0.1,     0.05,      0.2,       0.05 ]
     theta = [  theta_1,   theta_2, theta_3,   theta_4,  theta_5,   theta_6 ]
@@ -117,8 +117,8 @@ def run_test_case(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, theta_6
     fig    = go.Figure()
 
     theta_current, theta_variables           = get_sympy_inputs(
-                                                theta_1=np.pi/2, theta_2=np.pi/2, theta_3=np.pi, 
-                                                theta_4=-np.pi/2, theta_5=-np.pi/2, theta_6=0)
+                                                theta_1=0, theta_2=0, theta_3=0, 
+                                                theta_4=0, theta_5=0, theta_6=0)
     home_origins, origins_padded, T_matrices = full_forward_kinematics_numeric(T_home_matrices, theta_current)
     
     
