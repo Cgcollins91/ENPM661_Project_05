@@ -1,4 +1,4 @@
-# enpm662p2
+# Group 1, Library Robot
 
 ## Building Docker Image
 The docker folder holds a variety of image definitions: humblebot, jazzybot, ubuntu2204, ubuntu2404, etc.  
@@ -6,12 +6,25 @@ Building each docker image works the same way.  Using humblebot as an example:
 
     cd enpm662p2/docker/humblebot
     ./build.sh
-
-Once you build the images, you can create containers with it.
+    ./launch.sh
+    
+Alternatively, all of these steps can be completed with
+    
+    cd enpm662p2
+    ./init.sh
 
 ## Running a Container
-The docker folder (see above) has a script to help you launch a container.  
-Assuming the image was built without issue, you can repeatedly launch as many containers as you need.
+The easiest way to run a container is to use
+
+    cd enpm662p2
+    ./init.sh
+
+which will run a container and attach it, or build one if one does not already exist. If a container is already running, another terminal can be opened with the same container using
+
+    cd enpm662p2
+    ./attach.sh
+
+Launching can also be done manually. Assuming the image was built without issue, you can repeatedly launch as many containers as you need.
 
     cd enpm662p2/docker/humblebot
     ./launch.sh 99
@@ -24,59 +37,28 @@ The launch script will try to find your code directory in one of a few expected 
 ## Running the Gazebo Demo
 If there are changes to the Dockerfile, you will need to update the image and start a fresh container.  Please see the instructions in the previous sections.
 
-After launching a new container, to run the Gazebo demo (which automatically spawns the robot):
+After launching a new container, to open the library world in Gazebo (which automatically spawns the robot):
 
     cd /mnt/enpm662p2/project2
-    ./run_empty.sh
+    ./terp2_empty
 
-The script `run_gazebo.sh` performs a clean build using `colcon` and sources the install files for you.  Alternatively, you can build and run it yourself:
+The script `terp2_build.sh` performs a clean build using `colcon` and sources the install files for you.  Alternatively, you can build and run it yourself:
 
     cd /mnt/enpm662p2/project2
     colcon build
     source install/setup.bash
 
-    ros2 launch terp1 gazebo.launch.py
+    ros2 launch terp2 gazebo.launch.py
 
-If you make changes to the project and want to see what happens, you can rerun `run_gazebo.sh` or manually run the commands listed above.  
+If you make changes to the project and want to see what happens, you can rerun `terp2_build.sh` or manually run the commands listed above.  
 
 ## Running the Teleop Demo
-After starting up the Gazebo Demo (with the robot spawned), you can control the robot using the teleop controller.  
+After starting up the Gazebo Demo (with the robot spawned), you can control the robot using the teleop controller.
 
-First, attach to the existing container or start a new container.  Either will work.
-
-### Running the Teleop Demo in an Existing Container
-Attach to the container running the Gazebo simulation:
-
-    # connecting to an existing container named `humblebot1`
-    docker exec -it humblebot1 bash
-
-After connecting to the existing container, you can start the teleop controller:
+After connecting to the existing container and spawning the library world, you can start the teleop controller:
 
     cd /mnt/enpm662p2/project2
-    ./run_teleop.sh
-
-Like the Gazebo Demo, you can also run it manually:
-    
-    cd /mnt/enpm662p2/project2
-    source install/setup.bash
-
-    ros2 run terp1 teleop.py
-
-### Running the Teleop Demo in a New Container
-
-Create a new container:
-
-    # creating a new container named `humblebot99`
-    cd project_dir/docker/humblebot
-    ./launch.sh 99 
-
-Since we are using a new container, we need to build the project first.  Only do this step when running the teleop demo in another container:
-
-    cd /mnt/enpm662p2/project2
-    colcon build
-    source install/setup.bash
-
-    ros2 run terp1 teleop.py
+    ./terp2_teleop.sh
 
 ## Running the Controller Demo
 
@@ -85,32 +67,23 @@ Before starting the controller, you will need to startup the Gazebo simulator.  
 Once you have a session ready:
 
     cd /mnt/enpm662p2/project2
-    ./run_controller.sh
+    ./terp2_controller.sh
 
 That bash script is basically running:
 
-    ros2 run terp1_controller terp1_controller
+    ros2 run terp2_controller terp2_controller
 
 The controller will log telemetry data to the screen.  Use this to monitor what's happening.  This is useful even when using the teleop demo.
 
-The controller is waiting for a parameter named `goal` to set the x and y coordinate of the target destination for the robot. There is an example of how to set the parameter in `set_goal.sh`.  
+To run the library shelving demo within the library world in Gazebo, run
 
-To set the parameter, start a new session (or new container) as described previously and run the following:
+    ./terp2_library_nav.sh
 
-    ros2 param set /terp1_controller goal "[10.0, 10.0]"  #to move robot to x=10.0, y=10.0
+This script is a sequence of actions defined by setting parameters with `terp2_set_goal.sh`, `terp2_set_arm.sh` and `terp2_set_gripper.sh`
 
-## Running the Arena, LIDAR, and RViz Demo
-Before running this demo, ensure you have an updated docker image and are not running other simulations at the same time.  This demo will automatically start Gazebo and RViz.  
+To set parameters manually, start a new session (or new container) and run as described previously. Then, run the desired script for setting parameters. Below are examples:
 
-    cd /mnt/enpm662p2/project2
-    ./run_arena.sh
-
-That bash script is running:
-
-    ros2 launch terp1 competition.launch.py
-
-The automated controller is currently not compatible with the arena.  However, you can start a teleop controller (see above) and direct the robot around the track.  RViz should show realtime LIDAR and joint state data.
-
-
-## Additional Details on Project 1
-The project includes mix of changes that got it from a collection of URDF files into a working project.  Please see project2/README.md for more details.
+    ./terp2_set_goal.sh 10 10 #move the robot to x=10, y=10
+    ./terp2_set_arm.sh 3.0 0.5 1.25 -0.8 0.0 #set joints 1 to 5 to the positions of 3.0, 0.5, 1.25, -0.8, and 0.0
+    ./terp2_set_gripper.sh 1.5 0.0 0.0 0.0 #set the "gripper joints" to positions 1.5, 0.0, 0.0, and 0.0
+    
