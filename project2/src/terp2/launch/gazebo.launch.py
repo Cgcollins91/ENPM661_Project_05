@@ -23,7 +23,7 @@ def generate_launch_description():
     world = os.path.join(
         get_package_share_directory('terp2'),
         'worlds',
-        'library.world'
+        'empty.world'
     )
 
     gz_server = IncludeLaunchDescription(
