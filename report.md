@@ -109,7 +109,7 @@ Rotating J1 by 90 degrees should rotate the robot's arm around the Z axis.  As w
 ![[Pasted image report_images/Case5_project2.png]]
 
 
-For the next validation, we can rotate J2 and J3 by the same angle.  With the design of this manipulate, if J2 and J3 are rotated by the same value, we should see the end effector move away and down from the arm's origin, without any rotational changes.  As shown in the table below, compared with the at-rest position, there is an absolute value increase in y (outward motion), a decrease in z (downward motion), and no change in x (lateral motion).  Also, there was no change in orientation of the end effector (Rz, Ry, Rx).
+For the next validation, we can rotate J2 and J3 by the same angle.  With the design of this manipulator, if J2 and J3 are rotated by the same value, we should see the end effector move away and down from the arm's origin, without any rotational changes.  As shown in the table below, compared with the at rest position, there is an absolute value increase in y (outward motion), a decrease in z (downward motion), and no change in x (lateral motion).  Also, there was no change in orientation of the end effector (Rz, Ry, Rx).
 ![[Pasted image 20241208104024.png]]
 
 Joints J3 and J4 can be rotated together for a similar validation as J2 and J3.  However, this will cause the end effector to raise above the origin instead of lower.  Below, we can see the output is as expected:  No change in x or in orientation.  The z value has increased (upward motion), and the absolute y value has also increase (outward motion).  
@@ -122,7 +122,7 @@ Finally, J6 is rotated which, as expected, only affects the Ry value when the ot
 ![[Pasted image 20241208105031.png]]
 
 # Robot Workspace 
-We assessed the robot workspace by limiting joint movement to +/- 90 degrees and running every combination of 4 linearly spaced joint angles from -90 to +90 degrees. The constraint on +/-90 degrees is due to the possibility of joint combinations where the end effector would collide with the floor. This constraint could later be relaxed leveraging logic to limit specific joint based on the position of other joints to avoid floor collisions. The below plot shows the end effector position at each point run and the shaded blue indicates possible positions for the end effector.
+We assessed the robot workspace by limiting joint movement to +/- 90 degrees and running every combination of 4 linearly spaced joint angles from -90 to +90 degrees. The constraint is due to the possibility of collisions with the floor and could later be relaxed leveraging condition based logic to avoid floor collisions. The below plot shows the end effector position at each point run and the shaded blue indicates possible positions for the end effector.
 
 ![[Pasted image report_images/Robot_Workspace_Project2.png]]
 
@@ -164,11 +164,13 @@ Forward view of the plot of the starting joint values, (0, 1, 1, 0, 0, 0)radians
 
 The Gazebo model in the same starting position as used for the plot above.  
 ![[Pasted image 20241208105524.png]]
+
 # Assumptions
 The following assumptions were made for this project:
 - Robot navigation will be simulated by following a pre-determined path.  The robot will not determine a path based on identifying the home location of an arbitrary book.
 - The robot will not use environmental feedback as part of its path planning.  Course changes will be limited to adjustments made by the PID controller to compensate for trajectory errors.  The robot will not make adjustments for path obstructions.
 - The act of picking up a book will be simulated.  Handing the dynamics associated with picking up an object in Gazebo are beyond the scope of this project.  
+
 # Control Method
 The robot has two control methods, a Teleop controller and an autonomous controller.  The Teleop Controller provides forward, reverse and turning controls for the robot base, as well as individual controls for each joint and gripper.  The Teleop controller reports joint positions that can be recorded for use in the autonomous controller.  
 
