@@ -6,6 +6,9 @@ import numpy as np
 
 
 class JointStateSubscriber(Node):
+    ''' Python class JointStateSubscriber 
+            Subscribes to the /joint_states topic and prints the joint angles, velocities, and efforts
+    '''
     def __init__(self):
         super().__init__('joint_state_subscriber')
         # Subscriber to the /model_states topic
@@ -27,7 +30,7 @@ class JointStateSubscriber(Node):
             else:
                 position = msg.position[i]
                 velocity = msg.velocity[i]
-                effort = msg.effort[i]
+                effort   = msg.effort[i]
                 
                 self.get_logger().info(
                     f'  Joint: {model_name}\n'

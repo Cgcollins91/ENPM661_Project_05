@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Project: ENPM662-Project1-Group1
+# Project: ENPM662-Project2-Group1
 # License: MIT
 # The code in this file represents the collective work of Group 1.
 # At times, code has been liberally borrowed from files provided

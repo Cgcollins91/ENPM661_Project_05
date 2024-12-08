@@ -57,6 +57,7 @@ def get_sympy_inputs(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, thet
     theta_variables = [theta for theta in theta_variables if isinstance(theta, sp.Basic)]
 
     return values, theta_variables
+
 def get_robot_transformations():
     ''' This function computes the symbolic transformation and Jacobian matrices for each joint according 
     to our DH parameters'''
@@ -220,7 +221,6 @@ def get_thetas(theta_current):
 
     return [theta_1,  theta_2,  theta_3, theta_4, theta_5, theta_6]
 
-
 def reduce_angle(angle):
     """ This function reduces an angle to be within -2pi and 2pi """
     angle %= 2 * math.pi # Reduce the angle modulo 2pi
@@ -234,9 +234,12 @@ def reduce_angle(angle):
     return angle
 
 
-
-
 class JointTrajectoryPublisher(Node):
+    '''     Python class JointTrajectoryPublisher
+            Publishes a joint trajectory to the /arm_controller/joint_trajectory topic leveraging a PID Controller and HW2 like funcitonality, 
+            this script was only tested and not used in produciton
+    '''
+
     def __init__(self):
         super().__init__('joint_trajectory_publisher')
         self.publisher = self.create_publisher(
@@ -247,8 +250,9 @@ class JointTrajectoryPublisher(Node):
 
         self.gripper_publisher = self.create_publisher( JointTrajectory, '/gripper_controller/joint_trajectory', 10)
 
-        self.target = [-1.27221+.2, 0.023923, 0.914991]      
+        self.target         = [-1.27221+.2, 0.023923, 0.914991]      
         T_home_matrices, J  = get_robot_transformations()
+
         # Get the symbolic transformation matrices and Jacobian for our DH Reference Frames
         J_CoM, p_com_sym, F = get_CoM_parameters(T_home_matrices)
 
@@ -256,7 +260,7 @@ class JointTrajectoryPublisher(Node):
         joint_torques       = get_joint_torques(J_CoM, F)
         
 
-        origin  = sp.Matrix([0, 0, 0, 1])
+        origin                                       = sp.Matrix([0, 0, 0, 1])
         theta1_start, theta2_start, theta3_start     =  0, 0, 0
         theta_4_start, theta_5_start, theta_6_start  =  0, 0, 0
 
@@ -311,10 +315,10 @@ class JointTrajectoryPublisher(Node):
         self.joint_limits = [
             (  -np.pi,   np.pi),  # Joint 1
             (-2*np.pi, 2*np.pi),  # Joint 2
-            (-2*np.pi, 2*np.pi), # Joint 3
+            (-2*np.pi, 2*np.pi),  # Joint 3
             (-2*np.pi, 2*np.pi),  # Joint 4
             (-2*np.pi, 2*np.pi),  # Joint 5
-            (0.0,         0.04)  # Joint 6
+            (0.0,         0.04)   # Joint 6
         ]
 
         self.start_time = self.get_clock().now()

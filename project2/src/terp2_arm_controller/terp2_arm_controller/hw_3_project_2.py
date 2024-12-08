@@ -15,14 +15,16 @@ import math
 
 
 def get_symbolic_DH_matrix(i):
-    """ Get the symbolic DH matrix for the ith joint of the UR5 robot"""
+    """ Get the symbolic DH matrix for the ith joint of the robot"""
     theta = sp.symbols(f'theta_{i}')
 
-    if i==1 or i == 2:
+    if i == '1' or i == '2':
         theta = theta - sp.pi / 2  # Subtract pi/2 for joint 1 and 2
-    elif i == 3:
-        theta = theta - sp.pi      # Subtract pi for joint 3
-    elif i == 4 or i== 5:
+
+    elif i == '3':
+        theta = theta + sp.pi      # Subtract pi for joint 3
+
+    elif i == '4' or i == '5':
         theta = theta + sp.pi / 2 # Add pi/2 for joint 4 & 5
 
     alpha = sp.symbols(f'alpha_{i}')
@@ -43,14 +45,14 @@ def get_sympy_inputs(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, thet
     all else are fixed
     """
     
-    values = {}
-    theta_variables= []
-    indexes = ['1',       '2',    '3',     '4',      '5',       '6']
+    values          = {}
+    theta_variables = []
+    indexes         = ['1',       '2',    '3',     '4',      '5',       '6']
 
-    a     = [    0.0,         0.85,   0.75,        0,         0,         0 ]
-    alpha = [ -np.pi/2,     -np.pi,      0,  -np.pi/2,  np.pi/2,         0 ]
-    d     = [     0.76,      0.05,     0.1,     0.05,      0.2,       0.05 ]
-    theta = [  theta_1,   theta_2, theta_3,   theta_4,  theta_5,   theta_6 ]
+    a     = [    0.0,         0.85,      0.75,         0,         0,         0 ]
+    alpha = [ -np.pi/2,     np.pi,         0,    -np.pi/2,   np.pi/2,         0 ]
+    d     = [     0.05,      0.05,        0.1,      0.05,      0.2,       0.05 ]
+    theta = [  theta_1,   theta_2,    theta_3,   theta_4,  theta_5,   theta_6 ]
  
 
     for index, i in zip(indexes, range(1, 7)):
@@ -95,7 +97,7 @@ def full_forward_kinematics_numeric(T_matrices, theta_current):
     o1,  o2,  o3,  o4, o5, o6 = [T*origin for T in [T01sub,  T02sub, T03sub,  T04sub, T05sub, T06sub]]
 
     origin, o1, o2,  o3,  o4, o5, o6   = [np.array(origin).astype(np.float64)] + [np.array(o).astype(np.float64) for o in [o1,  o2,  o3,  o4, o5, o6 ]]
-    origins_padded                             = [origin, o1,  o2,  o3,  o4, o5, o6 ]
+    origins_padded                     = [origin, o1,  o2,  o3,  o4, o5, o6 ]
 
     origin, o1,  o2,  o3,  o4, o5, o6   = [origin[:3]] + [o[:3] for o in [o1,  o2,  o3,  o4, o5, o6 ]]
     origins    = [origin, o1,  o2, o3, o4, o5, o6 ]
@@ -116,14 +118,17 @@ def run_test_case(theta_1=0, theta_2=0, theta_3=0, theta_4=0, theta_5=0, theta_6
     origin = sp.Matrix([0, 0, 0, 1])
     fig    = go.Figure()
 
+
     theta_current, theta_variables           = get_sympy_inputs(
-                                                theta_1=0, theta_2=0, theta_3=0, 
-                                                theta_4=0, theta_5=0, theta_6=0)
+        theta_1=0, theta_2=0, theta_3=0, 
+        theta_4=0, theta_5=0, theta_6=0
+        )
     home_origins, origins_padded, T_matrices = full_forward_kinematics_numeric(T_home_matrices, theta_current)
     
-    
 
-    theta_current, theta_variables           = get_sympy_inputs(theta_1=theta_1, theta_2=theta_2, theta_3=theta_3, theta_4=theta_4, theta_5=theta_5, theta_6=theta_6)
+    theta_current, theta_variables           = get_sympy_inputs(
+        theta_1=theta_1, theta_2=theta_2, theta_3=theta_3,
+        theta_4=theta_4, theta_5=theta_5, theta_6=theta_6)
     case_origins, origins_padded, T_matrices = full_forward_kinematics_numeric(T_home_matrices, theta_current)
 
 
@@ -860,6 +865,63 @@ def get_joint_torques(J_CoM, F):
     return joint_torques
 
 
+def plot_workspace(T06_func):
+    ''' This function computes the workspace of the robot given the symbolic transformation matrix T06'''
+    # Define joint ranges
+    joint_range = np.linspace(-np.pi/2,     np.pi/2, 4)  # Adjust range and resolution as needed
+    origin = np.array([0, 0, 0, 1])
+
+    # Compute workspace points
+    workspace_points = []
+    for q1 in joint_range:
+        for q2 in joint_range:
+            for q3 in joint_range:
+                for q4 in joint_range:
+                    for q5 in joint_range:
+                        for q6 in joint_range:
+                            joint_values = [q1, q2, q3, q4, q5, q6]
+                            q_sym            = get_thetas(get_sympy_thetas(*joint_values))
+                            T06_numeric_flat = T06_func(*q_sym)
+                            T06_numeric      = np.array(T06_numeric_flat).reshape(4, 4)
+                            p_curr           = T06_numeric @ origin
+                            workspace_points.append([float(coord) for coord in p_curr[:3]])
+
+
+    workspace_points = np.array(workspace_points)
+    # Extract X, Y, Z coordinates
+    x, y, z = workspace_points[:, 0], workspace_points[:, 1], workspace_points[:, 2]
+
+    # Create 3D Mesh plot
+    fig = go.Figure()
+
+    # Mesh for shaded workspace
+    fig.add_trace(go.Mesh3d(
+        x=x, y=y, z=z,
+        color='blue',
+        opacity=0.5,
+        alphahull=5  # surface tightness
+    ))
+
+    # Scatter plot for discrete points (optional)
+    fig.add_trace(go.Scatter3d(
+        x=x, y=y, z=z,
+        mode='markers',
+        marker=dict(size=2, color='red', opacity=0.8),
+        name='Workspace Points'
+    ))
+
+    # Customize layout
+    fig.update_layout(
+        scene=dict(
+            xaxis_title='X',
+            yaxis_title='Y',
+            zaxis_title='Z',
+        ),
+        title="Robot Workspace, Joint movement limited to +/- pi/2",
+    )
+    # Show interactive plot
+    fig.show()
+
 
 #  MAIN SETUP
 
@@ -892,7 +954,7 @@ keys_to_remove                      = theta_variables
 start_values_fixed                  = {key: start_values[key] for key in start_values if key not in keys_to_remove}
 theta_current                       = get_sympy_thetas(theta_1=theta1_start, theta_2=theta2_start, theta_3=theta3_start, theta_4=theta_4_start, theta_5=theta_5_start, theta_6=theta_6_start)
 
-func_mats, subs_mats = get_lamdified(J, J_CoM, joint_torques, T_home_matrices, start_values_fixed, theta_variables)
+func_mats, subs_mats         = get_lamdified(J, J_CoM, joint_torques, T_home_matrices, start_values_fixed, theta_variables)
 J_func, T06_func, J_CoM_func = func_mats['J_func'], func_mats['T06_func'], func_mats['J_CoM_func']
 
 T01_subs   = subs_mats['T01_subs']
@@ -906,91 +968,17 @@ J_CoM_subs = subs_mats['J_CoM_subs']
 torque_subs = subs_mats['joint_torques_subs']
 torque_func = func_mats['joint_torques_func']
 
-
+T_home_matrices_subs = [T01_subs, T02_subs, T03_subs, T04_subs, T05_subs, T06_subs]
 
 #  Run Test Cases and Plot Home vs. Test Case
-plot_test_cases(T_home_matrices)
+plot_test_cases(T_home_matrices_subs)
+
+#  Plot Workspace
+plot_workspace(T06_func)
 
 # %%
 # Define joint ranges
-joint_range_1 = np.linspace(-np.pi/2,     np.pi/2, 4)  # Adjust range and resolution as needed
-joint_range_2 = np.linspace(-2*np.pi, 2*np.pi, 8) 
 
-
-#Numerical evaluation of transformations
-def evaluate_transform(T, joint_values):
-    subs_dict = {f'q{i+1}': joint_values[i] for i in range(6)}
-    return np.array(T.subs(subs_dict).evalf()).astype(float)
-
-# Compute workspace points
-workspace_points = []
-for q1 in joint_range_1:
-    for q2 in joint_range_2:
-        for q3 in joint_range_2:
-            for q4 in joint_range_2:
-                for q5 in joint_range_2:
-                    for q6 in joint_range_2:
-                        joint_values = [q1, q2, q3, q4, q5, q6]
-                        q_sym            = get_thetas(get_sympy_thetas(*joint_values))
-                        T06_numeric_flat = T06_func(*q_sym)
-                        T06_numeric      = np.array(T06_numeric_flat).reshape(4, 4)
-                        p_curr           = T06_numeric @ origin
-                        workspace_points.append([float(coord) for coord in p_curr[:3]])
-
-
-
-
-workspace_points = np.array(workspace_points)
-# Extract X, Y, Z coordinates
-x, y, z = workspace_points[:, 0], workspace_points[:, 1], workspace_points[:, 2]
-
-# Create 3D Mesh plot
-fig = go.Figure()
-
-# Mesh for shaded workspace
-fig.add_trace(go.Mesh3d(
-    x=x, y=y, z=z,
-    color='blue',
-    opacity=0.5,
-    alphahull=5  # Adjust to control the surface tightness
-))
-
-# Scatter plot for discrete points (optional)
-fig.add_trace(go.Scatter3d(
-    x=x, y=y, z=z,
-    mode='markers',
-    marker=dict(size=2, color='red', opacity=0.8),
-    name='Workspace Points'
-))
-
-# Customize layout
-fig.update_layout(
-    scene=dict(
-        xaxis_title='X',
-        yaxis_title='Y',
-        zaxis_title='Z',
-    ),
-    title="Robot Workspace",
-)
-
-# Show interactive plot
-fig.show()
-
-# %%
-fig = go.Figure()
-workspace_points = np.array(workspace_points)
-# Extract X, Y, Z coordinates
-x, y, z = workspace_points[:, 0], workspace_points[:, 1], workspace_points[:, 2]
-
-
-# Mesh for shaded workspace
-fig.add_trace(go.Mesh3d(
-    x=x, y=y, z=z,
-    color='blue',
-    opacity=0.5,
-    alphahull=5  # Adjust to control the surface tightness
-))
-fig.show()
 
 # %% Run Custom Case (Starting Position for Trajectory)
 # Define joint ranges

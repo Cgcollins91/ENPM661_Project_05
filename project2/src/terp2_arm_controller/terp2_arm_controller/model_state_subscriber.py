@@ -4,6 +4,10 @@ from gazebo_msgs.msg import ModelStates
 
 
 class ModelStateSubscriber(Node):
+    '''     Python class ModelStateSubscriber
+            Subscribes to the /model_states topic and prints the model names, poses, and velocities
+            
+    '''
     def __init__(self):
         super().__init__('model_states_subscriber')
         

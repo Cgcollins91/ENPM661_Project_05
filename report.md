@@ -93,13 +93,21 @@ Using the transforms list (produced by `prebuild_transforms`) in the Forward Kin
 
 The complete and evaluated Jacobian can be resolved by stacking the linear and angular submatrices together and substituting the current joint values.  
 ![[Pasted image 20241208101711.png]]
+
 # Forward Kinematics Validation
 Geometric validation of the forward kinematics chain was performed using transformation matrices in an Excel spread sheet.  This methodology was adapted from a YouTube video by Chris Annin of Annin Robotics (see references).  A copy of the excel file is included with this report.
 ![[Pasted image 20241208102737.png]]
 Using this "spreadsheet model" we can change joint values in isolation and confirm the output is as expected.
 
-Rotating J1 by 90 degrees should rotate the robot's arm around the Z axis.  As we can see in the table below, the z value of the output does not change, the Rz value rotates by 90 degrees, and the absolute x/y values swap values.  Ry and Rx do not change.  These are strong indicators that the DH table is accurate.
+Rotating J1 by 90 degrees should rotate the robot's arm around the Z axis.  As we can see in the table below, the z value of the output does not change, the Rz value rotates by 90 degrees, and the absolute x/y values swap values.  Ry and Rx do not change.  Next, we rotated joints J2 - J5 individually by 90 degrees to confirm our DH table is correct. The plots below show the Home position vs. 90 degree rotation of each joint.
+
 ![[Pasted image 20241208103306.png]]
+![[Pasted image report_images/Case1_project2.png]]
+![[Pasted image report_images/Case2_project2.png]]
+![[Pasted image report_images/Case3_project2.png]]
+![[Pasted image report_images/Case4_project2.png]]
+![[Pasted image report_images/Case5_project2.png]]
+
 
 For the next validation, we can rotate J2 and J3 by the same angle.  With the design of this manipulate, if J2 and J3 are rotated by the same value, we should see the end effector move away and down from the arm's origin, without any rotational changes.  As shown in the table below, compared with the at-rest position, there is an absolute value increase in y (outward motion), a decrease in z (downward motion), and no change in x (lateral motion).  Also, there was no change in orientation of the end effector (Rz, Ry, Rx).
 ![[Pasted image 20241208104024.png]]
@@ -112,6 +120,11 @@ Below, J5 is rotated 45 degrees, which is reflected in the Rz rotation, and in c
 
 Finally, J6 is rotated which, as expected, only affects the Ry value when the other joints are in the home position.  
 ![[Pasted image 20241208105031.png]]
+
+# Robot Workspace 
+We assessed the robot workspace by limiting joint movement to +/- 90 degrees and running every combination of 4 linearly spaced joint angles from -90 to +90 degrees. The constraint on +/-90 degrees is due to the possibility of joint combinations where the end effector would collide with the floor. This constraint could later be relaxed leveraging logic to limit specific joint based on the position of other joints to avoid floor collisions. The below plot shows the end effector position at each point run and the shaded blue indicates possible positions for the end effector.
+
+![[Pasted image report_images/Robot_Workspace_Project2.png]]
 
 # Inverse Kinematics Validation
 *Note 1: The code in this section was based on a team member's work product from an individual HW2/3 submission.  To protect the integrity of the homework assignments, code was not shared with other team members until after the due date of the HW3.*
