@@ -19,7 +19,7 @@ Due: November 8, 2024
 	- ROS Development
 
 # Introduction
-The objective of this project was to design, model, and demonstrate a mobile robot that can retrieve and return books to and from library shelves.   The simulation will demonstrate the robot's ability to move to a specified location, retrieve a book from the robot's storage system, and place the book on a library shelf. 
+The objective of this project was to design, model, and demonstrate a mobile robot that can retrieve and return books to and from library shelves. The simulation will demonstrate the robot's ability to move to a specified location, retrieve a book from the robot's storage system, and place the book on a library shelf.
 
 There are two motivations for this robot: 
 - The robot can provide assistance with book retrieval tasks, such as if an individual is physically unable to reach a book off a shelf.  
@@ -29,29 +29,38 @@ There are two motivations for this robot:
 The design of the robot is inspired by the UJI librarian robot described here:
 https://www.researchgate.net/publication/225367956_The_UJI_librarian_robot#fullTextFileContent
 
+![image](https://github.com/user-attachments/assets/887e41de-fb06-4eb6-ad77-a863a20a5dfb)
+
+_An image of the UJI as pictured in the original paper_
+
 The UJI robot was able to autonomously locate and retrieve a book in an ordinary library, provided only with the book code and a library map. The UJI robot employed stereo vision, visual tracking, and other techniques to locate and retrieve the book. 
 
 Group 1's robot simulation will focus on kinematics and will not include path planning and environmental response capabilities such as those found on the UJI librarian robot. 
 
 # Robot Type
 
--- INSERT CONCEPT ART
+![image](https://github.com/user-attachments/assets/fc5d0e8f-c646-4e03-b373-34a51cc6c7b5)
 
-The Library robot is effectively two robots in a single package.  The base is a mobile robot consisting 2 drive wheels, 2 wheels for directional control, and 6 slots for storing books.    The lower section will have a cavity capable of hold large batteries for extended runtime and additional ballast.  
+The Library robot is effectively two robots in a single package. The base is a mobile robot consisting 2 drive wheels, 2 wheels for directional control, and 6 slots of various sizes for storing books. The lower section will have a cavity capable of hold large batteries for extended runtime and additional ballast.  
 
 Mounted to the top of the base robot is a manipulator arm with 5 links.  The links and joints have a compact design with a low center of gravity to facilitate locomotion without risk of tipping.  
 
-The manipulator arm has a custom gripper capable of rotating 360 degrees and independently controlled pads.
+The dimensions of the arm are based on those of the UR3 but the CAD model itself was designed from scratch. The manipulator arm has a custom gripper capable of rotating 360 degrees and independently controlled pads. The base and storage slots are also custom.
+
+--- ARE STATMENTS ON MODEL CORRECT?
 
 # DOFs and Dimensions
-The mobile base has three degrees of freedom that allow it to move across a large, flat workspace to a desired x-y coordinate and 2d orientation.  The arm and gripper assembly combine for six degrees of freedom, allowing the gripper to be placed at any x-y-z coordinate and 3d orientation inside the robot's effective workspace.  
+The mobile base has three degrees of freedom that allow it to move across a large, flat workspace to a desired x-y coordinate and 2D orientation. The arm and gripper assembly combine for six degrees of freedom, allowing the gripper to be placed at any x-y-z coordinate and 3D orientation inside the robot's effective workspace.  
 
-The robot has a circular footprint with a 600mm diameter, and the base/storage system sits approximately 720mm above the floor.  The arm, when collapsed has a height of 900mm (above the base), and a maximum extension of 1850mm (above the base).  The total overall height of the robot, at full extension is 2750mm, and has a sweeping radius (with arm extended fully perpendicular) of approximately 1950mm.
+The robot has a circular footprint with a 600mm diameter, and the base/storage system sits approximately 720mm above the floor. The arm, when collapsed has a height of 900mm (above the base), and a maximum extension of 1850mm (above the base). The total overall height of the robot, at full extension is 2750mm, and has a sweeping radius (with arm extended fully perpendicular) of approximately 1950mm.
 
 # CAD Model
-The robot and additional asserts were fully modelled in SolidWorks and exported in URDF format.  Model files are included with this report.
+The robot and additional assets were fully modelled in SolidWorks and exported in URDF format.  Model files are included with this report.
 
--- INSERT MODEL PICTURES
+![image](https://github.com/user-attachments/assets/b2300898-2e23-4363-b82e-846c66ebfebf)
+![image](https://github.com/user-attachments/assets/eda76730-fc9d-4556-8520-5cb1004f0701)
+
+The CAD models for the library environment were sourced from 
 
 # Frame Assignment
 
@@ -78,7 +87,13 @@ The robot and additional asserts were fully modelled in SolidWorks and exported 
 *Explain how to derive the inverse kinematics using Jacobian matrix.*  
 *Provide the Jacobian matrix. You can copy paste the code output here or provide the screenshot of the output.*
 
--- INCOMPLETE
+The Jacobian matrix was determined via the first method described in class (for code, see `enpm662p2/project2/src/terp2_arm_controller/terp2_arm_controller/hw_3_project_2.py`). All of the robot arm joints are revolute, and so the following applies for all joints:
+
+![image](https://github.com/user-attachments/assets/143912ce-7a53-4dbe-8b1b-bfd1347cdcc9)
+
+The first step in this method is to define the DH table, from which sequential transformation matricies can be extracted (transform from frame 1 to 2 called _T12_, from 2 to 3 for _T23_, etc.). These matricies can then be used to form the transformation matricies from frame 0 to i (_T0i_), which are needed for the calculation of each _Z_ and _O_ matrix in the Jacobian. _Z_ at _i-1_ is composed of the first three elements of the 3rd column of _T0i_, while _O_ at _i_ is the first three elements of the 4th column of _T0i_. The final Jacobian can be created by considering each _J_ at _i_ as a column in the Jacobian.
+
+-- INCOMPLETE, PERHAPS CAN BE FORMATTED SOMEHOW BETTER AS WELL?
 
 # Forward Kinematics Validation
 *Either geometrically validate the FK i.e. start with some known joint angles and verify the end effector position using the final transformation matrix. Show diagrammatic representations of the robot at the known joint values and validate the transformation matrix you get.*  
@@ -92,6 +107,16 @@ The robot and additional asserts were fully modelled in SolidWorks and exported 
 *Make sure you specify the required trajectory, and how you compute the tool velocity for the required trajectory.*
 
 -- INCOMPLETE
+
+# Additional Validations
+
+-- NOT A REQUIRED section, but it should add some meat to our report
+
+In addition to the validations performed above, a workspace study of the arm was conducted. This was acheived by limiting the base joint to -90 and +90 while placing no limits on the other joints, and then joint positions were input at random and a point cloud of the end effector was generated:
+
+![image](https://github.com/user-attachments/assets/6d2d1a43-ac03-4d8d-b422-df57ae80aab8)
+
+-- IS THIS CORRECT? Also, is there code for this that we can include in the repo?
 
 # Assumptions
 The following assumptions were made for this project:
