@@ -59,13 +59,13 @@ RUN cd neovim/build && cpack -G DEB && sudo dpkg -i nvim-linux-x86_64.deb
 RUN rm -rf neovim
 
 # install ROS2 and turtlebot
-RUN sudo mkdir -p /turtlebot/src
-RUN sudo chown -R ${USERNAME}:${USERNAME} /turtlebot
-WORKDIR /turtlebot
-RUN wget https://raw.githubusercontent.com/ROBOTIS-GIT/turtlebot3/ros2/turtlebot3.repos
-RUN vcs import src<turtlebot3.repos
-RUN rosdep update && rosdep install --from-paths src --ignore-src -y 
-RUN . /opt/ros/humble/setup.sh && colcon build #do not split these
+# RUN sudo mkdir -p /turtlebot/src
+# RUN sudo chown -R ${USERNAME}:${USERNAME} /turtlebot
+# WORKDIR /turtlebot
+# RUN wget https://raw.githubusercontent.com/ROBOTIS-GIT/turtlebot3/ros2/turtlebot3.repos
+# RUN vcs import src<turtlebot3.repos
+# RUN rosdep update && rosdep install --from-paths src --ignore-src -y 
+# RUN . /opt/ros/humble/setup.sh && colcon build #do not split these
 
 # add helpful ROS/Gazebo scripts
 COPY assets/run_world.sh /turtlebot/run_world.sh
@@ -79,4 +79,6 @@ RUN sudo apt-get install -y ros-humble-gazebo-ros2-control
 RUN sudo apt-get install -y ros-humble-joint-state-publisher
 RUN sudo apt-get install -y ros-humble-controller-manager
 RUN sudo apt-get install -y ros-humble-joint-state-publisher-gui
+RUN sudo apt-get install -y ros-humble-gazebo-ros-pkgs
 RUN pip install pynput
+
