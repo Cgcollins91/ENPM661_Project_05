@@ -31,7 +31,7 @@ if [[ ! -d ${MOUNT_DIR} ]]; then
     MOUNT_DIR="/home/${USERNAME}/projects/${REPO}"
 fi
 if [[ ! -d ${MOUNT_DIR} ]]; then
-    MOUNT_DIR="/home/${USERNAME}/cpp/${REPO}"
+    MOUNT_DIR="/home/${USERNAME}/umd/${REPO}"
 fi
 if [[ ! -d ${MOUNT_DIR} ]]; then
     MOUNT_DIR="/home/${USERNAME}/School/662ENPM/${REPO}"
