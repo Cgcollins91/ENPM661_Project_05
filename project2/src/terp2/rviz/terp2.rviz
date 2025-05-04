@@ -49,6 +49,18 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: true
+      # ── LIDAR cloud  (← *new display, same indent level*) ──
+    - Class: rviz_default_plugins/PointCloud2
+      Name: Lidar
+      Enabled: true
+      Topic: /scan
+      Queue Size: 10
+      Style: Points
+      Size (Pixels): 2
+      Color Transformer: Intensity
+      Autocompute Intensity Bounds: true
+      Decay Time: 0.0
+      Point Alpha: 1
     - Alpha: 1
       Class: rviz_default_plugins/RobotModel
       Collision Enabled: false
