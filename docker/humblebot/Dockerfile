@@ -37,6 +37,7 @@ ENV LANG=en_US.UTF-8
 # fixup the .bashrc with some aliases and environment variables
 COPY assets/helpful.bash /tmp/helpful.bash
 RUN cat /tmp/helpful.bash >> /root/.bashrc
+RUN sed -i '/project2/d' /root/.bashrc
 
 # create user account
 RUN groupadd -g ${GROUP_ID} ${USERNAME} 
@@ -44,6 +45,7 @@ RUN useradd -m -u ${USER_ID} -g ${GROUP_ID} -s /bin/bash ${USERNAME}
 RUN echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 USER ${USERNAME}
 WORKDIR /home/${USERNAME}
+RUN sed -i '/project2/d' ~/.bashrc
 
 # add a few helpful items to bash and colcon config
 COPY assets/helpful.bash /tmp/helpful.bash
