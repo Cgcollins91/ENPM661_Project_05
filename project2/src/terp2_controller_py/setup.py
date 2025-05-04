@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'terp2_arm_controller'
+package_name = 'terp2_controller_py'
 
 setup(
     name=package_name,
@@ -16,13 +16,11 @@ setup(
     maintainer='cgcollins91',
     maintainer_email='cgcollins91@todo.todo',
     description='TODO: Package description',
-    license='Apache-2.0',
+    license='MIT',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'model_state_subscriber      = terp2_arm_controller.model_state_subscriber:main',
-            'joint_state_subscriber      = terp2_arm_controller.joint_state_subscriber:main',
-            'joint_trajectory_publisher  = terp2_arm_controller.joint_trajectory_publisher:main'
+                'controller_py       = terp2_controller_py.controller_py:main'
         ],
     },
 )

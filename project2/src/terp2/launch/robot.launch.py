@@ -60,12 +60,12 @@ def generate_launch_description():
         parameters=[{'use_sim_time': use_sim_time, 'robot_description': xml}],
     )
 
-    # controller_manager = Node(
-    #     package='controller_manager',
-    #     executable='ros2_control_node',
-    #     parameters=[{'robot_description': xml}, controller_params_file],
-    #     output='screen'
-    # )
+    controller_manager = Node(
+        package='controller_manager',
+        executable='ros2_control_node',
+        parameters=[{'robot_description': xml}, controller_params_file],
+        output='screen'
+    )
 
     arm_controller_spawner = Node(
         package='controller_manager',
@@ -162,7 +162,7 @@ def generate_launch_description():
             sim_time_arg,
             robot_state_publisher,
             robot_node,
-            # controller_manager,  # Added controller manager node
+            controller_manager,  # Added controller manager node
             joint_state_broadcaster_spawner,
             delayed_position_controller_spawner,
             delayed_velocity_controller_spawner,

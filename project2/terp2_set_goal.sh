@@ -13,4 +13,4 @@
 #    will cause controller to navigate terp1 to (5,5)
 
 source install/setup.bash
-ros2 param set /terp2_controller goal "[${1}.0,${2}.0]"
+ros2 param set /terp2_controller_py goal "[${1}.0,${2}.0]"
