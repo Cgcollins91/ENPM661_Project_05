@@ -1,7 +1,7 @@
 
-# Project: ENPM662-Project1-Group1
+# Project: ENPM661_Project_05
 # License: MIT
-# The code in this file represents the collective work of Group 1.
+# The code in this file represents the collective work of Group 2.
 # At times, code has been liberally borrowed from files provided
 # with the project's instructions or from OSRF training materials.
 # Please see the project report for a list of references, or contact

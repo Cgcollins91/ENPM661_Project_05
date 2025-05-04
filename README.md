@@ -1,32 +1,32 @@
-# Group 1, Library Robot
+# Group 2, Library Robot
 
 ## Building Docker Image
 The docker folder holds a variety of image definitions: humblebot, jazzybot, ubuntu2204, ubuntu2404, etc.  
 Building each docker image works the same way.  Using humblebot as an example:
 
-    cd enpm662p2/docker/humblebot
+    cd ENPM662_Project_05/docker/humblebot
     ./build.sh
     ./launch.sh
     
 Alternatively, all of these steps can be completed with
     
-    cd enpm662p2
+    cd ENPM662_Project_05
     ./init.sh
 
 ## Running a Container
 The easiest way to run a container is to use
 
-    cd enpm662p2
+    cd ENPM662_Project_05
     ./init.sh
 
 which will run a container and attach it, or build one if one does not already exist. If a container is already running, another terminal can be opened with the same container using
 
-    cd enpm662p2
+    cd ENPM662_Project_05
     ./attach.sh
 
 Launching can also be done manually. Assuming the image was built without issue, you can repeatedly launch as many containers as you need.
 
-    cd enpm662p2/docker/humblebot
+    cd ENPM662_Project_05/docker/humblebot
     ./launch.sh 99
 
 Replace '99' with any number you like.  This helps identify unique containers.  (e.g., humblebot1, humblebot2, etc.).
@@ -39,12 +39,12 @@ If there are changes to the Dockerfile, you will need to update the image and st
 
 After launching a new container, to open the library world in Gazebo (which automatically spawns the robot):
 
-    cd /mnt/enpm662p2/project2
+    cd /mnt/ENPM662_Project_05/project2
     ./terp2_empty
 
 The script `terp2_build.sh` performs a clean build using `colcon` and sources the install files for you.  Alternatively, you can build and run it yourself:
 
-    cd /mnt/enpm662p2/project2
+    cd /mnt/ENPM662_Project_05/project2
     colcon build
     source install/setup.bash
 
@@ -57,7 +57,7 @@ After starting up the Gazebo Demo (with the robot spawned), you can control the 
 
 After connecting to the existing container and spawning the library world, you can start the teleop controller:
 
-    cd /mnt/enpm662p2/project2
+    cd /mnt/ENPM662_Project_05/project2
     ./terp2_teleop.sh
 
 ## Running the Controller Demo
@@ -66,7 +66,7 @@ Before starting the controller, you will need to startup the Gazebo simulator.  
 
 Once you have a session ready:
 
-    cd /mnt/enpm662p2/project2
+    cd /mnt/ENPM662_Project_05/project2
     ./terp2_controller.sh
 
 That bash script is basically running:

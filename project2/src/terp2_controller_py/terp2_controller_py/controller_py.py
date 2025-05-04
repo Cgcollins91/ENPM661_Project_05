@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # ---------------------------------------------------------------------------
-# Project: ENPM662-Project1-Group1
+# Project: ENPM661-Project5-Group2
 # License: MIT
 #
 # This is a one-for-one translation of the original C++ terp2_controller node
@@ -331,3 +331,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
