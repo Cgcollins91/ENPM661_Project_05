@@ -1,6 +1,6 @@
 from setuptools import find_packages, setup
 
-package_name = 'terp2_controller_py'
+package_name = 'terp2_slam'
 
 setup(
     name=package_name,
@@ -9,7 +9,7 @@ setup(
     data_files=[
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
-            ('share/terp2_controller_py/launch', ['launch/controllers_launch.py']),
+        ('share/terp2_slam/launch', ['launch/slam_custom.launch.py']),
         ('share/' + package_name, ['package.xml']),
     ],
     install_requires=['setuptools'],
@@ -17,14 +17,12 @@ setup(
     maintainer='cgcollins91',
     maintainer_email='cgcollins91@todo.todo',
     description='TODO: Package description',
-    license='MIT',
+    license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-                'controller_py = terp2_controller_py.controller_py:main',
-                'imu_to_odom   = terp2_controller_py.imu_to_odom:main',
-                'explorer      = terp2_controller_py.explorer:main',
-                
+            'mapper_node   = terp2_slam.mapper_node:main',
+            'scan_matcher  = terp2_slam.scan_matcher:main'
         ],
     },
 )

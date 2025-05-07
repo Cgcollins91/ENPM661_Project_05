@@ -181,11 +181,12 @@
         </joint>
 
     </ros2_control>
-
+        <!-- Put this just after the definition of base_link (but still inside <robot> … </robot>) -->
     <gazebo>
         <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
             <parameters>$(find terp2)/config/control.yaml</parameters>
         </plugin>
     </gazebo>
+
 </robot>
 

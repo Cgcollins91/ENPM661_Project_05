@@ -8,9 +8,10 @@
 # Please see the project report for a list of references, or contact
 # the team with specific questions.
 
-#
-# example:  ./set_goal.sh 5 5
-#    will cause controller to navigate terp1 to (5,5)
+BASE_PATH=/mnt/ENPM662_Project_05/project2
+cd ${BASE_PATH} || exit
+source /opt/ros/humble/setup.bash
+# colcon build --packages-select terp2_controller_py --symlink-install
+source ${BASE_PATH}/install/setup.bash
+ros2 run terp2_controller_py imu_to_odom --ros-args -p use_sim_time:=true
 
-source install/setup.bash
-ros2 param set /terp2_controller gripper_goal "[${1},${2},${3},${4}]"

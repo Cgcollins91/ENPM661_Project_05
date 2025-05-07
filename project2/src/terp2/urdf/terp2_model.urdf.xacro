@@ -44,6 +44,24 @@
       </geometry>
     </collision>
   </link>
+    <!-- Put this just after the definition of base_link (but still inside <robot> … </robot>) -->
+  <link name="imu_link"/>
+  <joint name="joint_imu" type="fixed">
+    <parent link="base_link"/>
+    <child  link="imu_link"/>
+  </joint>
+  <gazebo reference="imu_link">
+    <sensor name="terp2_imu" type="imu">
+      <update_rate>100.0</update_rate>
+      <always_on>true</always_on>
+      <plugin name="imu_pub" filename="libgazebo_ros_imu_sensor.so">
+        <ros>
+          <remapping>~/out:=imu</remapping>   <!-- publishes /imu -->
+        </ros>
+        <frame_name>imu_link</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
   <link
     name="link_arm_1">
     <inertial>
