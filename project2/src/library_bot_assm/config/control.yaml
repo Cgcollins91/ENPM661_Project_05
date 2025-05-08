@@ -1,0 +1,82 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 1000
+    use_sim_time: true
+
+    position_controller:
+      type: position_controllers/JointGroupPositionController
+    arm_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+    gripper_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+    velocity_controller:
+      type: velocity_controllers/JointGroupVelocityController
+
+position_controller:
+  ros__parameters:
+    joints:
+      - swivel_front_joint
+      - swivel_back_joint
+    interface_name: position
+    command_interfaces:
+      - position
+    state_interfaces:
+      - position
+      - velocity
+
+arm_controller:
+  ros__parameters:
+    action_monitor_rate: 20.0
+    allow_integration_in_goal_trajectories: true
+    allow_nonzero_velocity_at_trajectory_end: false
+    allow_partial_joints_goal: true
+    cmd_timeout: 0.0
+    joints:
+      - arm1_joint
+      - arm2_joint
+      - arm3_joint
+      - arm4_joint
+    command_interfaces: 
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    constraints:
+      goal_time: 0.6
+
+    position_feedback: true
+
+velocity_controller:
+  ros__parameters:
+    joints:
+      - drive_wheel_right_joint
+      - drive_wheel_left_joint
+    interface_name: velocity
+    command_interfaces:
+      - velocity
+    state_interfaces:
+      - position
+      - velocity
+
+gripper_controller:
+  ros__parameters:
+    action_monitor_rate: 20.0
+    allow_integration_in_goal_trajectories: true
+    allow_nonzero_velocity_at_trajectory_end: false
+    allow_partial_joints_goal: true
+    cmd_timeout: 0.0
+    joints:
+      - gripper_base_joint
+      - gripper_pad1_joint
+      - gripper_pad2_joint
+    command_interfaces: 
+      - position
+    state_interfaces:
+      - position
+      - velocity
+    constraints:
+      goal_time: 0.6
+
+    position_feedback: true

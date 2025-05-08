@@ -8,7 +8,7 @@
 # Please see the project report for a list of references, or contact
 # the team with specific questions.
 
-BASE_PATH=/mnt/enpm662p2/project2
+BASE_PATH=~/ENPM662_Project_05/project2
 cd ${BASE_PATH} || exit
 source /opt/ros/humble/setup.bash
 rm -rf ${BASE_PATH}/build

@@ -16,7 +16,7 @@ from launch.substitutions import Command, FindExecutable, PathJoinSubstitution, 
 from launch.actions import IncludeLaunchDescription,ExecuteProcess,RegisterEventHandler
 from launch.event_handlers import OnProcessExit
 from launch_ros.actions import Node
-import xacro
+#import xacro
 import random
 
 from launch_ros.substitutions import FindPackageShare
@@ -24,8 +24,8 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
 
-    xacro_file = "terp2.urdf.xacro"
-    robot_name = "terp2"
+    xacro_file = "library_bot_assm.urdf"
+    robot_name = "library_bot_assm"
 
     robot_pkg = get_package_share_directory(robot_name)
 
@@ -33,8 +33,10 @@ def generate_launch_description():
     orientation = [0.0, 0.0, 0.0]
 
 
-    robot_urdf = os.path.join(robot_pkg, "urdf", xacro_file)
-    xml = xacro.process_file(robot_urdf).toxml()
+    robot_urdf = os.path.join(robot_pkg, "urdf", "library_bot_assm.urdf")
+    with open(robot_urdf, 'r') as infp:
+        robot_description = infp.read()
+    
     controller_params_file = os.path.join(robot_pkg, 'config', 'control.yaml')
 
 
@@ -57,13 +59,13 @@ def generate_launch_description():
         package='robot_state_publisher',
         executable='robot_state_publisher',
         output="screen",
-        parameters=[{'use_sim_time': use_sim_time, 'robot_description': xml}],
+        parameters=[{'use_sim_time': use_sim_time, 'robot_description': robot_description}],
     )
 
     controller_manager = Node(
         package='controller_manager',
         executable='ros2_control_node',
-        parameters=[{'robot_description': xml}, controller_params_file],
+        parameters=[{'robot_description': robot_description}, controller_params_file],
         output='screen'
     )
 
@@ -129,32 +131,32 @@ def generate_launch_description():
     sim_time_arg = launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True', description='Flag to enable use_sim_time')
 
     # RVIZ Configuration
-    rviz_config_dir = PathJoinSubstitution([FindPackageShare("terp2"), "rviz", "terp2.rviz"])
-    rviz_node = Node(
-        package='rviz2',
-        executable='rviz2',
-        output='screen',
-        name='rviz_node',
-        parameters=[{'use_sim_time': True}],
-        arguments=['-d', rviz_config_dir]
-    )
-    joint_state_gui=Node(
-        package='joint_state_publisher_gui',
-        executable='joint_state_publisher_gui',
-        name='joint_state_publisher_gui',
-        output='screen',
-        parameters=[{'use_sim_time': use_sim_time}],
-    )
-    rviz_arg = launch.actions.DeclareLaunchArgument(name='rvizconfig', default_value=rviz_config_dir,
-                                     description='Absolute path to rviz config file')
+    # rviz_config_dir = PathJoinSubstitution([FindPackageShare("library_bot_assm"), "rviz", "library_bot_assm.rviz"])
+    # rviz_node = Node(
+    #     package='rviz2',
+    #     executable='rviz2',
+    #     output='screen',
+    #     name='rviz_node',
+    #     parameters=[{'use_sim_time': True}],
+    #     arguments=['-d', rviz_config_dir]
+    # )
+    # joint_state_gui=Node(
+    #     package='joint_state_publisher_gui',
+    #     executable='joint_state_publisher_gui',
+    #     name='joint_state_publisher_gui',
+    #     output='screen',
+    #     parameters=[{'use_sim_time': use_sim_time}],
+    # )
+    # rviz_arg = launch.actions.DeclareLaunchArgument(name='rvizconfig', default_value=rviz_config_dir,
+    #                                  description='Absolute path to rviz config file')
     # Static TF Transform
-    tf=Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        name='static_transform_publisher',
-        output='screen',
-        arguments=['1', '0', '0', '0', '0', '0', '1', '/base_link',  '/base_link'  ],
-    )
+    # tf=Node(
+    #     package='tf2_ros',
+    #     executable='static_transform_publisher',
+    #     name='static_transform_publisher',
+    #     output='screen',
+    #     arguments=['1', '0', '0', '0', '0', '0', '1', '/base_link',  '/base_link'  ],
+    # )
 
     return LaunchDescription(
         [
@@ -168,6 +170,6 @@ def generate_launch_description():
             delayed_velocity_controller_spawner,
             delayed_arm_controller_spawner,  # Added delayed arm controller spawner
             delayed_gripper_controller_spawner,  # Added delayed arm controller spawner
-            rviz_node
+            # rviz_node
         ]
     )

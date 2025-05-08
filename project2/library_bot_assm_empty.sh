@@ -11,4 +11,6 @@
 BASE_PATH=~/ENPM662_Project_05/project2
 cd ${BASE_PATH} || exit
 source ${BASE_PATH}/install/setup.bash
-ros2 run terp2 teleop.py
+ros2 launch library_bot_assm gazebo.launch.py
+
+

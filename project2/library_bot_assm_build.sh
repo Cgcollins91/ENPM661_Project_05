@@ -10,5 +10,17 @@
 
 BASE_PATH=~/ENPM662_Project_05/project2
 cd ${BASE_PATH} || exit
+source /opt/ros/humble/setup.bash
+rm -rf ${BASE_PATH}/build
+rm -rf ${BASE_PATH}/install
+rm -rf ${BASE_PATH}/log
+
+#arena models
+mkdir -p ~/.gazebo/models/arena
+rm -rf ~/.gazebo/models/arena
+
+
+colcon build
 source ${BASE_PATH}/install/setup.bash
-ros2 run terp2 teleop.py
+
+

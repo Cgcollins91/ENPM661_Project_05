@@ -1,0 +1,772 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="library_bot_assm">
+  <link name="world"/>
+  <joint name="world_to_base" type="fixed">
+  <parent link="world"/>
+  <child link="bot_base_link"/>
+  <origin xyz="0 0 0" rpy="0 0 0"/>
+  </joint>
+  <link
+    name="bot_base_link">
+    <inertial>
+      <origin
+        xyz="-9.00001597661697E-18 -2.58181987165882E-17 -0.419286362322794"
+        rpy="0 0 0" />
+      <mass
+        value="95.6023685202303" />
+      <inertia
+        ixx="3.54500161671179"
+        ixy="-5.31259064517897E-18"
+        ixz="2.76471553983804E-18"
+        iyy="3.57118394280799"
+        iyz="-3.31181542125083E-16"
+        izz="3.86248881264609" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/bot_base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/bot_base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="drive_wheel_left_link">
+    <inertial>
+      <origin
+        xyz="-2.28615654084008E-16 1.11022302462516E-16 -0.015"
+        rpy="0 0 0" />
+      <mass
+        value="0.220374767201206" />
+      <inertia
+        ixx="0.000162575540140175"
+        ixy="-3.36042123849673E-22"
+        ixz="2.4353779546448E-21"
+        iyy="0.000162575540140175"
+        iyz="4.50137116569684E-22"
+        izz="0.000292094865200169" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/drive_wheel_left_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/drive_wheel_left_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="drive_wheel_left_joint"
+    type="continuous">
+    <origin
+      xyz="-0.27 0 -0.66"
+      rpy="-1.5707963267949 0 -1.5707963267949" />
+    <parent
+      link="bot_base_link" />
+    <child
+      link="drive_wheel_left_link" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="drive_wheel_right_link">
+    <inertial>
+      <origin
+        xyz="-2.28513258118277E-16 0 0.0150000000000001"
+        rpy="0 0 0" />
+      <mass
+        value="0.220374767201206" />
+      <inertia
+        ixx="0.000162575540140175"
+        ixy="-4.80798731046448E-21"
+        ixz="4.59902630806203E-22"
+        iyy="0.000162575540140175"
+        iyz="-2.95317189816604E-22"
+        izz="0.000292094865200169" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/drive_wheel_right_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/drive_wheel_right_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="drive_wheel_right_joint"
+    type="continuous">
+    <origin
+      xyz="0.27 0 -0.66"
+      rpy="-1.5707963267949 0 -1.5707963267949" />
+    <parent
+      link="bot_base_link" />
+    <child
+      link="drive_wheel_right_link" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="swivel_front_link">
+    <inertial>
+      <origin
+        xyz="0.00760462966279492 -0.0633613818775779 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.0236444808728788" />
+      <inertia
+        ixx="1.38069026593696E-05"
+        ixy="-2.40548516604097E-06"
+        ixz="-1.41776354874208E-22"
+        iyy="5.52868478263428E-06"
+        iyz="-1.99276965618111E-22"
+        izz="1.8073623534725E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/swivel_front_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/swivel_front_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="swivel_front_joint"
+    type="continuous">
+    <origin
+      xyz="0 0.25982621214848 -0.595"
+      rpy="1.5707963267949 0 0" />
+    <parent
+      link="bot_base_link" />
+    <child
+      link="swivel_front_link" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="swivelwheel_front_link">
+    <inertial>
+      <origin
+        xyz="5.55111512312578E-17 1.11022302462516E-16 2.22614707383154E-16"
+        rpy="0 0 0" />
+      <mass
+        value="0.117291638747911" />
+      <inertia
+        ixx="5.44584550233809E-05"
+        ixy="-1.83756880608948E-20"
+        ixz="4.65183930171833E-21"
+        iyy="5.44584550233809E-05"
+        iyz="-6.74640617676431E-21"
+        izz="9.13231642345752E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/swivelwheel_front_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/swivelwheel_front_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="swivelwheel_front_joint"
+    type="continuous">
+    <origin
+      xyz="0 -0.0774999999999999 0"
+      rpy="0 -1.5707963267949 0" />
+    <parent
+      link="swivel_front_link" />
+    <child
+      link="swivelwheel_front_link" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="swivel_back_link">
+    <inertial>
+      <origin
+        xyz="0.0076046296627947 -0.0633613818775779 0"
+        rpy="0 0 0" />
+      <mass
+        value="0.0236444808728788" />
+      <inertia
+        ixx="1.38069026593696E-05"
+        ixy="-2.40548516604097E-06"
+        ixz="-1.41776354874208E-22"
+        iyy="5.52868478263428E-06"
+        iyz="-1.99276965618111E-22"
+        izz="1.8073623534725E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/swivel_back_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/swivel_back_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="swivel_back_joint"
+    type="continuous">
+    <origin
+      xyz="0 -0.259826212148481 -0.595"
+      rpy="1.5707963267949 0 0" />
+    <parent
+      link="bot_base_link" />
+    <child
+      link="swivel_back_link" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="swivelwheel_back_link">
+    <inertial>
+      <origin
+        xyz="0 0 6.3995761596305E-19"
+        rpy="0 0 0" />
+      <mass
+        value="0.117291638747911" />
+      <inertia
+        ixx="5.44584550233809E-05"
+        ixy="-1.49215627686324E-20"
+        ixz="3.48199429139889E-21"
+        iyy="5.44584550233809E-05"
+        iyz="-7.34477589515525E-21"
+        izz="9.13231642345753E-05" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/swivelwheel_back_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/swivelwheel_back_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="swivelwheel_back_joint"
+    type="continuous">
+    <origin
+      xyz="0 -0.0775 0"
+      rpy="0 -1.5707963267949 0" />
+    <parent
+      link="swivel_back_link" />
+    <child
+      link="swivelwheel_back_link" />
+    <axis
+      xyz="0 0 1" />
+  </joint>
+  <link
+    name="arm1_link">
+    <inertial>
+      <origin
+        xyz="-1.19990045728466E-18 0.0574056537017304 0.01"
+        rpy="0 0 0" />
+      <mass
+        value="0.39707963267949" />
+      <inertia
+        ixx="0.000838667522715935"
+        ixy="4.00523220180742E-20"
+        ixz="3.45295789932022E-21"
+        iyy="0.000522111614960166"
+        iyz="5.32969071569881E-20"
+        izz="0.000690798519008228" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/arm1_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/arm1_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="arm1_joint"
+    type="continuous">
+    <origin
+      xyz="0 0.01 0"
+      rpy="1.5707963267949 0 0" />
+    <parent
+      link="bot_base_link" />
+    <child
+      link="arm1_link" />
+    <axis
+      xyz="0 1 0" />
+  </joint>
+  <link
+    name="arm2_link">
+    <inertial>
+      <origin
+        xyz="-4.32481862348499E-19 0.137125967226228 1.5790313656305E-14"
+        rpy="0 0 0" />
+      <mass
+        value="0.979269908169873" />
+      <inertia
+        ixx="0.00869233762509293"
+        ixy="2.25148676868435E-19"
+        ixz="5.47718806389964E-20"
+        iyy="0.00137892712566646"
+        iyz="8.47824992461145E-19"
+        izz="0.00803469515997113" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/arm2_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/arm2_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="arm2_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.0799999999999999 0.01"
+      rpy="0 0 0" />
+    <parent
+      link="arm1_link" />
+    <child
+      link="arm2_link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-1.5708"
+      upper="1.5708"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="arm3_link">
+    <inertial>
+      <origin
+        xyz="-2.25449825414057E-19 0.145125740501822 1.58008868732187E-14"
+        rpy="0 0 0" />
+      <mass
+        value="0.939269908169872" />
+      <inertia
+        ixx="0.00722908215002739"
+        ixy="2.19044783884263E-20"
+        ixz="2.62785139153205E-20"
+        iyy="0.000736260458999793"
+        iyz="-4.29242111266981E-20"
+        izz="0.00676343968490559" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/arm3_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/arm3_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="arm3_joint"
+    type="prismatic">
+    <origin
+      xyz="0 0.1 0"
+      rpy="0 0 0" />
+    <parent
+      link="arm2_link" />
+    <child
+      link="arm3_link" />
+    <axis
+      xyz="0 1 0" />
+    <limit
+      lower="0"
+      upper="0.19"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="arm4_link">
+    <inertial>
+      <origin
+        xyz="-2.75533202459304E-19 0.135 -1.88445319376486E-15"
+        rpy="0 0 0" />
+      <mass
+        value="1.53707963267949" />
+      <inertia
+        ixx="0.0132798880020701"
+        ixy="-7.94093388050907E-20"
+        ixz="-1.84967888061378E-20"
+        iyy="0.00186787368907097"
+        iyz="1.99933319034426E-19"
+        izz="0.0125041499946547" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/arm4_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/arm4_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="arm4_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.28 0"
+      rpy="0 0 0" />
+    <parent
+      link="arm3_link" />
+    <child
+      link="arm4_link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-1.5708"
+      upper="1.5708"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="gripper_base_link">
+    <inertial>
+      <origin
+        xyz="7.63638074505723E-18 0.0702475328230157 -4.43106300640604E-15"
+        rpy="0 0 0" />
+      <mass
+        value="0.693809724509618" />
+      <inertia
+        ixx="0.00159672167512236"
+        ixy="4.7762734252363E-20"
+        ixz="-1.22738383160377E-19"
+        iyy="0.00119583522942448"
+        iyz="2.14669194784949E-19"
+        izz="0.00160407921000055" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/gripper_base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/gripper_base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="gripper_base_joint"
+    type="revolute">
+    <origin
+      xyz="0 0.27 0"
+      rpy="0 0 0" />
+    <parent
+      link="arm4_link" />
+    <child
+      link="gripper_base_link" />
+    <axis
+      xyz="1 0 0" />
+    <limit
+      lower="-1.5708"
+      upper="1.5708"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="gripper_pad1_link">
+    <inertial>
+      <origin
+        xyz="0.0129629629629634 -0.0371180555555556 -0.0430555555555556"
+        rpy="0 0 0" />
+      <mass
+        value="0.108" />
+      <inertia
+        ixx="0.000353619661458332"
+        ixy="6.0034722222225E-05"
+        ixz="2.0222222222223E-05"
+        iyy="9.19560185185198E-05"
+        iyz="-7.20416666666664E-05"
+        izz="0.000360192346643518" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/gripper_pad1_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/gripper_pad1_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="gripper_pad1_joint"
+    type="prismatic">
+    <origin
+      xyz="0 0.12 -0.025"
+      rpy="-3.1415 -1.5708 0" />
+    <parent
+      link="gripper_base_link" />
+    <child
+      link="gripper_pad1_link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="0"
+      upper="0.06"
+      effort="0"
+      velocity="0" />
+  </joint>
+  <link
+    name="gripper_pad2_link">
+    <inertial>
+      <origin
+        xyz="-0.0129629629629626 -0.0371180555555558 0.0430555555555555"
+        rpy="0 0 0" />
+      <mass
+        value="0.108" />
+      <inertia
+        ixx="0.000353619661458334"
+        ixy="-6.00347222222194E-05"
+        ixz="2.02222222222214E-05"
+        iyy="9.19560185185171E-05"
+        iyz="7.20416666666668E-05"
+        izz="0.000360192346643518" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/gripper_pad2_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_bot_assm/meshes/gripper_pad2_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="gripper_pad2_joint"
+    type="prismatic">
+    <origin
+      xyz="0 0.12 -0.025"
+      rpy="-3.1415 -1.5708 0" />
+    <parent
+      link="gripper_base_link" />
+    <child
+      link="gripper_pad2_link" />
+    <axis
+      xyz="0 0 1" />
+    <limit
+      lower="-0.06"
+      upper="0"
+      effort="0"
+      velocity="0" />
+  </joint>
+</robot>
