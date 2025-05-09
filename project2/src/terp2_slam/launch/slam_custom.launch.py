@@ -9,18 +9,38 @@ def generate_launch_description():
     robot = get_package_share_directory('terp2')
     rviz_config_dir = PathJoinSubstitution([pkg, "rviz", "slam_custom.rviz"])
     laser_filter_config = PathJoinSubstitution([robot, 'config', 'scan_filter.yaml' ])
+    scan_filter_params = {
+        # this dict becomes the "ros__parameters" namespace
+        "scan_filter_chain": [
+            {
+                "name":  "drop_self_hits",
+                "type":  "laser_filters/LaserScanBoxFilter",
+                "params": {
+                    "box_frame": "laser_link",
+                    "min_x": -0.30,
+                    "max_x":  0.30,
+                    "min_y": -0.30,
+                    "max_y":  0.30,
+                    "min_z": -0.40,
+                    "max_z":  0.80,
+                },
+            }]}
+    
     return LaunchDescription([
 
         Node(
-            package="laser_filters",
-            executable="scan_to_scan_filter_chain",
-            name="scan_filter",
-            parameters=[laser_filter_config,
-                         {'use_sim_time': True} ],
-            remappings=[
-                ("scan",          "/scan"),          # input
-                ("scan_filtered", "/scan_filtered")  # output
-            ]
+            package    = 'terp2_slam',
+            executable = 'box_filter',
+            name       = 'box_filter',
+            parameters = [{
+                'box_frame': 'base_link',   # exact TF frame
+                'min_x': -0.30, 'max_x': 0.30,
+                'min_y': -0.30, 'max_y': 0.30,
+                'min_z': -0.40, 'max_z': 1.50,
+                'use_sim_time': True,
+            }],
+            remappings = [('scan','/scan'), ('scan_filtered','/scan_filtered')],
+            output     = 'screen',
         ),
 
                 # ---------- scan matcher (odometry) ----------

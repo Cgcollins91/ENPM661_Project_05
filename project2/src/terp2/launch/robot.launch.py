@@ -129,31 +129,29 @@ def generate_launch_description():
     sim_time_arg = launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True', description='Flag to enable use_sim_time')
 
     controller_node = Node(
-        package   = 'terp2_controller_py',
+        package    = 'terp2_controller_py',
         executable = 'controller_py',      # ← entry-point name in setup.py
-        name      = 'controller_py',
-        output    = 'screen',
-        parameters=[{'use_sim_time': use_sim_time}],
+        name       = 'controller_py',
+        output     = 'screen',
+        parameters = [{'use_sim_time': use_sim_time}],
     )
 
-    imu_to_odom_node = Node(
-        package   = 'terp2_controller_py',
-        executable = 'imu_to_odom',        # ← entry-point name in setup.py
-        name      = 'imu_to_odom',
-        output    = 'screen',
-        parameters=[{'use_sim_time': use_sim_time}]
-    )
-
-    # RVIZ Configuration
-    # rviz_config_dir = PathJoinSubstitution([FindPackageShare("terp2"), "rviz", "terp2.rviz"])
-    # rviz_node = Node(
-    #     package='rviz2',
-    #     executable='rviz2',
-    #     output='screen',
-    #     name='rviz_node',
-    #     parameters=[{'use_sim_time': True}],
-    #     arguments=['-d', rviz_config_dir]
+    # imu_to_odom_node = Node(
+    #     package   = 'terp2_controller_py',
+    #     executable = 'imu_to_odom',        # ← entry-point name in setup.py
+    #     name      = 'imu_to_odom',
+    #     output    = 'screen',
+    #     parameters=[{'use_sim_time': use_sim_time}]
     # )
+    model_state_to_odom_node = Node(
+        package    = 'terp2_controller_py',
+        executable = 'model_state_to_odom',        # ← entry-point name in setup.py
+        name       = 'model_state_to_odom',
+        output     = 'screen',
+        parameters = [{'use_sim_time': use_sim_time}]
+    )
+
+   
     # joint_state_gui=Node(
     #     package='joint_state_publisher_gui',
     #     executable='joint_state_publisher_gui',
@@ -185,7 +183,8 @@ def generate_launch_description():
             delayed_arm_controller_spawner,  # Added delayed arm controller spawner
             delayed_gripper_controller_spawner,  # Added delayed arm controller spawner
             controller_node,
-            imu_to_odom_node,
+            model_state_to_odom_node 
+            # imu_to_odom_node,
             # rviz_node
         ]
     )

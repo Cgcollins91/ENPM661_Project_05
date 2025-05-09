@@ -21,9 +21,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-                'controller_py = terp2_controller_py.controller_py:main',
-                'imu_to_odom   = terp2_controller_py.imu_to_odom:main',
-                'explorer      = terp2_controller_py.explorer:main',
+                'controller_py        = terp2_controller_py.controller_py:main',
+                'model_state_to_odom  = terp2_controller_py.model_state_to_odom:main',
+                'explorer             = terp2_controller_py.explorer:main',
                 
         ],
     },

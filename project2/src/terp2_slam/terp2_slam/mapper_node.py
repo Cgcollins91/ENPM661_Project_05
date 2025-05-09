@@ -9,10 +9,16 @@ from rclpy.qos            import qos_profile_sensor_data
 from scipy.ndimage import binary_erosion, binary_dilation
 import cv2 
 from visualization_msgs.msg import Marker
-from skimage.morphology import skeletonize
+
+from rclpy.qos import QoSProfile, ReliabilityPolicy, DurabilityPolicy
+
+latched = QoSProfile(
+    reliability = ReliabilityPolicy.RELIABLE,
+    durability  = DurabilityPolicy.TRANSIENT_LOCAL,
+    depth = 1)
 
 MAP_RES   = 0.07          # metres / cell
-MAP_SIZE  = int(14 // MAP_RES)        # 400 × 400 → 20 m × 20 m
+MAP_SIZE  = int(20 // MAP_RES)        # 400 × 400 → 20 m × 20 m
 L0        = 0.0           # log-odds prior
 L_OCC     = 2.0
 L_FREE    = -1.0
@@ -20,6 +26,33 @@ OCC_THRESH  = 0.85      # >65 % ⇒ occupied
 OCC_STORE   = 0.85
 FREE_THRESH = 0.40      # <30 % ⇒ free   (between = unknown)
 STABLE_HITS = 3        # consecutive hits
+
+def skeletonize_img(binary_uint8):
+        """
+        Parameters
+        ----------
+        binary_uint8 : np.ndarray  (values 0 or 255)
+
+        Returns
+        -------
+        np.ndarray  same shape, one-pixel-wide skeleton (uint8 0/255)
+        """
+        if hasattr(cv2, 'ximgproc'):
+            return cv2.ximgproc.thinning(binary_uint8, None,
+                                        cv2.ximgproc.THINNING_ZHANGSUEN)
+        # Fallback: simple morphological skeleton (slower)
+        skel = np.zeros_like(binary_uint8)
+        element = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
+        done = False
+        img = binary_uint8.copy()
+        while not done:
+            eroded = cv2.erode(img, element)
+            opened = cv2.morphologyEx(eroded, cv2.MORPH_OPEN, element)
+            temp = cv2.subtract(eroded, opened)
+            skel = cv2.bitwise_or(skel, temp)
+            img = eroded.copy()
+            done = cv2.countNonZero(img) == 0
+        return skel
 
 class Mapper(Node):
     def __init__(self):
@@ -31,16 +64,16 @@ class Mapper(Node):
         self.map_cy  = MAP_SIZE // 2
 
         # ---------- publishers / TF ----------
-        self.map_pub   = self.create_publisher(OccupancyGrid, "/map", 2)
-        self.clean_pub = self.create_publisher(OccupancyGrid, "/clean_map", 2)
+        self.map_pub   = self.create_publisher(OccupancyGrid, "/map", latched)
+        self.clean_pub = self.create_publisher(OccupancyGrid, "/clean_map", latched)
         self.line_pub = self.create_publisher(Marker, "/wall_segments", 1)
 
-        self.hit_cnt = np.zeros_like(self.logodds, dtype=np.uint8)
+        self.hit_cnt  = np.zeros_like(self.logodds, dtype=np.uint8)
         self.wall_pts = set()   # {(cx,cy), …}  persisted cell indices
         # TF helpers
-        self.tf_buf  = Buffer()
-        self.tf_lstn = TransformListener(self.tf_buf, self)      # listener
-        self.tf_br   = TransformBroadcaster(self)                # dynamic broadcaster
+        self.tf_buf    = Buffer()
+        self.tf_lstn   = TransformListener(self.tf_buf, self)      # listener
+        self.tf_br     = TransformBroadcaster(self)                # dynamic broadcaster
         self.static_br = StaticTransformBroadcaster(self)        # once-off broadcaster
 
         # make the ‘map’ frame exist immediately -------------
@@ -60,7 +93,7 @@ class Mapper(Node):
 
         # periodic (dynamic) map→odom update ------------------
         self.tf_timer = self.create_timer(0.5, self.pub_map_tf)
-
+    
 
     def _make_grid_msg(self, stamp, prob):
         msg = OccupancyGrid()
@@ -109,25 +142,39 @@ class Mapper(Node):
             skeleton[ys, xs] = 255
         return skeleton
 
-    def detect_lines(self):
-        img = self.skeleton_for_hough()
-        # Probabilistic Hough is faster for sparse images
-        lines = cv2.HoughLinesP(img,
-                                rho=1,               # pixel resolution
-                                theta=np.deg2rad(1), # angle resolution
-                                threshold=30,        # min #points in a line
-                                minLineLength=10,    # pixels
-                                maxLineGap=3)
+
+    def detect_lines(self):    
+        """
+        Runs Probabilistic Hough directly on the cleaned binary grid.
+        Returns list of ((wx1, wy1), (wx2, wy2)) line segments in metres.
+        """
+        # --- 1. get binary grid (occ=100, free=0, unknown=-1) -------------
+        bin_img = self.clean_binary(self.bin_grid())          # int8
+        occ = (bin_img == 100).astype(np.uint8) * 255         # 0 / 255 image
+
+        # --- 2. edge detection  -------------------------------------------
+        edges = cv2.Canny(occ, 50, 150, apertureSize=3)
+
+        # --- 3. probabilistic Hough ---------------------------------------
+        lines = cv2.HoughLinesP(
+            edges,
+            rho=1,
+            theta=np.deg2rad(1),
+            threshold=30,
+            minLineLength=15,
+            maxLineGap=4,
+        )
         if lines is None:
             return []
-        # Convert from grid indices to world coordinates (metres)
+
+        # --- 4. convert to world coords -----------------------------------
         world_lines = []
-        for x1,y1,x2,y2 in lines[:,0]:
+        for x1, y1, x2, y2 in lines[:, 0]:
             wx1 = (x1 - self.map_cx) * MAP_RES
             wy1 = (y1 - self.map_cy) * MAP_RES
             wx2 = (x2 - self.map_cx) * MAP_RES
             wy2 = (y2 - self.map_cy) * MAP_RES
-            world_lines.append(((wx1,wy1), (wx2,wy2)))
+            world_lines.append(((wx1, wy1), (wx2, wy2)))
         return world_lines
 
 
@@ -230,12 +277,14 @@ class Mapper(Node):
         grid = self._make_grid_msg(stamp, p)
         self.map_pub.publish(grid)
 
+
         # 2. cleaned binary map
         clean_bin = self.clean_binary(self.bin_grid())    # int8 array
         clean = self._make_grid_msg(stamp, clean_bin / 100.0)
         clean.data = clean_bin.reshape(-1).tolist()       # overwrite with int8
         self.clean_pub.publish(clean)
         self.publish_lines(stamp)
+
 
     def pub_map_tf(self):
         t = TransformStamped()

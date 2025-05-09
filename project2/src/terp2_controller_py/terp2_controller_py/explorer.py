@@ -38,10 +38,12 @@ class FrontierExplorer(Node):
                              ]
 
         self.tune_point_i = 0
+        self.next_point   = 1
         self.TUNE_MODE = True
-        self.pause_secs = 4.0               # 4-second cool-down
+        self.pause_secs = 12.0               # 4-second cool-down
         self._paused = False                # “are we currently in a pause?”
         self._pause_timer = None            # rclpy.Timer instance (created on-demand)
+        self._last_reached = False 
 
 
     # =========================================================
@@ -65,37 +67,32 @@ class FrontierExplorer(Node):
 
     def _reached_cb(self, msg: Bool):
         self.goal_reached = msg.data
-        if self.goal_reached and not self._paused:
-            self.get_logger().info("Goal reached – pausing for %.1f s" %
-                               self.pause_secs)
+        
+        if self.goal_reached:
+            if self.TUNE_MODE:
+                self._last_reached = self.tune_point_i
+                self.tune_point_i = (self.tune_point_i + 1) % len(self.test_points)
+                if self.tune_point_i == 7:
+                    self.tune_point_i = 0
+                self.set_controller_goal(self.test_points[self.tune_point_i])
+            else:                                    # normal frontier mode
+                if self.map is not None:
+                    goal_xy = self.pick_frontier_goal()
+                    if goal_xy is not None:
+                        self.set_controller_goal(goal_xy)
 
-            self._paused = True
-            # create ONE periodic timer; we’ll destroy it in the callback
-            self._pause_timer = self.create_timer(
-                self.pause_secs,               # period
-                self._unpause_once             # callback
-            )
-
+        
+        
     def map_cb(self, msg: OccupancyGrid):
         self.map = msg
-
         if self._paused or not self.goal_reached:
             return
-        
-        if self.tune_point_i == 7:
-            self.tune_point_i = 0
-        if self.TUNE_MODE and self.goal_reached:
-            self.tune_point_i = (self.tune_point_i + 1) % len(self.test_points)
-            goal_str = self.test_points[self.tune_point_i]
-            
-        elif self.TUNE_MODE:
-            goal_str = self.test_points[self.tune_point_i]
 
-        else:
+        if not self.TUNE_MODE:
+            # ---------- normal frontier exploration ----------
             goal_xy = self.pick_frontier_goal()
-            x, y = goal_xy
-            goal_str = f"[{x:.3f}, {y:.3f}]"
-        self.set_controller_goal(goal_str)
+            if goal_xy:
+                self.set_controller_goal(goal_xy)
 
     # ---------------------------------------------------------
     def pick_frontier_goal(self):

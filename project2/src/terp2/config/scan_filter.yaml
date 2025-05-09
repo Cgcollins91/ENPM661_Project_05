@@ -1,0 +1,13 @@
+scan_filter:           # ← node name
+  ros__parameters:
+    scan_filter_chain:               # ← parameter name
+      - name: box         # ← ONE list item (note the single dash)
+        type: laser_filters/LaserScanBoxFilter
+        params:
+          box_frame: base_link       # box expressed in robot frame
+          min_x: "-0.30"               # metres
+          max_x:  "0.30"
+          min_y: "-0.30"
+          max_y:  "0.30"
+          min_z: "-0.40"
+          max_z:  "0.80"

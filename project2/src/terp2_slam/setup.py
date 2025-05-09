@@ -23,7 +23,8 @@ setup(
     entry_points={
         'console_scripts': [
             'mapper_node   = terp2_slam.mapper_node:main',
-            'scan_matcher  = terp2_slam.scan_matcher:main'
+            'scan_matcher  = terp2_slam.scan_matcher:main',
+            'box_filter = terp2_slam.box_filter:main',
         ],
     },
 )

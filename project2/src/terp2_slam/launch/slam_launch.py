@@ -71,16 +71,27 @@ def generate_launch_description():
              arguments=['-d', rviz_config_dir]
     )
     filtered_scan = Node(
-            package="laser_filters",
-            executable="scan_to_scan_filter_chain",
-            name="scan_filter",
-            parameters=[laser_filter_config,
-                         {'use_sim_time': True} ],
-            remappings=[
-                ("scan",          "/scan"),          # input
-                ("scan_filtered", "/scan_filtered")  # output
-            ]
-        ),
+            package    = 'laser_filters',
+            executable = 'scan_to_scan_filter_chain',
+            name       = 'scan_filter',
+            parameters = [{
+                'scan_filter_chain': [{
+                    'name':  'drop_self_hits',
+                    'type':  'laser_filters/LaserScanBoxFilter',
+                    'params': {
+                        'box_frame': 'lidar_link',   # EXACT TF frame name
+                        'min_x': -0.30,  'max_x': 0.30,
+                        'min_y': -0.30,  'max_y': 0.30,
+                        'min_z': -0.40,  'max_z': 0.80,
+                    },
+                }]
+            }, {'use_sim_time': True}],
+            remappings = [
+                ('scan',          '/scan'),
+                ('scan_filtered', '/scan_filtered'),
+            ],
+            output='screen',
+        )
 
  
     # delayed_pid_controller_spawner = RegisterEventHandler(
