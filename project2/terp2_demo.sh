@@ -13,7 +13,7 @@
 ./terp2_set_goal.sh 9 0
 ./terp2_set_arm.sh 3.0 0.0 0.0 0.0 0.0
 ./terp2_set_gripper.sh 1.5 0.0 0.0 0.0
-sleep 12
+sleep 25
 
 # grab 1x book
 ./terp2_set_arm.sh 3.0 0.5 1.25 -0.8 0.0
