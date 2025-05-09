@@ -1,0 +1,471 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- This URDF was automatically created by SolidWorks to URDF Exporter! Originally created by Stephen Brawner (brawner@gmail.com) 
+     Commit Version: 1.6.0-4-g7f85cfe  Build Version: 1.6.7995.38578
+     For more information, please see http://wiki.ros.org/sw_urdf_exporter -->
+<robot
+  name="library_world_assm">
+  <link
+    name="base_link">
+    <inertial>
+      <origin
+        xyz="3.39864191211783E-16 0.05 -9.9731258776702E-16"
+        rpy="0 0 0" />
+      <mass
+        value="9800" />
+      <inertia
+        ixx="40024.8333333333"
+        ixy="-9.53311503811468E-14"
+        ixz="6.6317322004276E-12"
+        iyy="200083.333333333"
+        iyz="-6.93072748694454E-31"
+        izz="160074.833333333" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/base_link.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/base_link.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <link
+    name="1l">
+    <inertial>
+      <origin
+        xyz="-2.44249065417534E-15 1.05 -1.33226762955019E-15"
+        rpy="0 0 0" />
+      <mass
+        value="1896" />
+      <inertia
+        ixx="904.700000000001"
+        ixy="-4.93901900859111E-13"
+        ixz="-1.24772403285476E-13"
+        iyy="889.840000000001"
+        iyz="2.74086309204335E-13"
+        izz="1570.7" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/1l.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/1l.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="1j"
+    type="fixed">
+    <origin
+      xyz="-2.5 2 2.2"
+      rpy="-1.5708 0 1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="1l" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="2l">
+    <inertial>
+      <origin
+        xyz="-2.22044604925031E-15 1.05 -1.33226762955019E-15"
+        rpy="0 0 0" />
+      <mass
+        value="1896" />
+      <inertia
+        ixx="904.700000000002"
+        ixy="-5.56900181611036E-13"
+        ixz="-1.84660696864623E-13"
+        iyy="889.840000000002"
+        iyz="2.8124204354274E-13"
+        izz="1570.7" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/2l.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/2l.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="2j"
+    type="fixed">
+    <origin
+      xyz="-2.5 -2 2.2"
+      rpy="-1.5708 0 1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="2l" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="3l">
+    <inertial>
+      <origin
+        xyz="-2.44249065417534E-15 1.05 -1.02401199123933E-15"
+        rpy="0 0 0" />
+      <mass
+        value="1896" />
+      <inertia
+        ixx="904.700000000001"
+        ixy="-5.26945149047086E-13"
+        ixz="-1.59727103945386E-13"
+        iyy="889.840000000001"
+        iyz="1.71842643196735E-13"
+        izz="1570.7" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/3l.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/3l.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="3j"
+    type="fixed">
+    <origin
+      xyz="0 2 2.2"
+      rpy="-1.5708 0 1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="3l" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="4l">
+    <inertial>
+      <origin
+        xyz="-2.22044604925031E-15 1.05 -1.44637141071257E-15"
+        rpy="0 0 0" />
+      <mass
+        value="1896" />
+      <inertia
+        ixx="904.700000000002"
+        ixy="-5.76733959309103E-13"
+        ixz="-2.49633589776144E-13"
+        iyy="889.840000000002"
+        iyz="1.90707760997983E-13"
+        izz="1570.7" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/4l.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/4l.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="4j"
+    type="fixed">
+    <origin
+      xyz="0 -2 2.2"
+      rpy="-1.5708 0 1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="4l" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="5l">
+    <inertial>
+      <origin
+        xyz="-2.44249065417534E-15 1.05 -8.88178419700125E-16"
+        rpy="0 0 0" />
+      <mass
+        value="1896" />
+      <inertia
+        ixx="904.700000000001"
+        ixy="-5.01335084557298E-13"
+        ixz="-1.24032728532341E-13"
+        iyy="889.840000000001"
+        iyz="2.75821032680312E-13"
+        izz="1570.7" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/5l.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/5l.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="5j"
+    type="fixed">
+    <origin
+      xyz="2.5 2 2.2"
+      rpy="-1.5708 0 1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="5l" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="6l">
+    <inertial>
+      <origin
+        xyz="-2.22044604925031E-15 1.05 -1.33226762955019E-15"
+        rpy="0 0 0" />
+      <mass
+        value="1896" />
+      <inertia
+        ixx="904.700000000001"
+        ixy="-5.6046155849423E-13"
+        ixz="-1.85622555554281E-13"
+        iyy="889.840000000002"
+        iyz="2.77772596590786E-13"
+        izz="1570.7" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/6l.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/6l.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="6j"
+    type="fixed">
+    <origin
+      xyz="2.5 -2 2.2"
+      rpy="-1.5708 0 1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="6l" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="7l">
+    <inertial>
+      <origin
+        xyz="-2.44249065417534E-15 1.05 -8.88178419700125E-16"
+        rpy="0 0 0" />
+      <mass
+        value="1896" />
+      <inertia
+        ixx="904.700000000001"
+        ixy="-5.03565504110053E-13"
+        ixz="-1.24639006502141E-13"
+        iyy="889.84"
+        iyz="2.66496893996937E-13"
+        izz="1570.7" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/7l.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/7l.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="7j"
+    type="fixed">
+    <origin
+      xyz="5 2 2.2"
+      rpy="-1.5708 0 1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="7l" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+  <link
+    name="8l">
+    <inertial>
+      <origin
+        xyz="-2.22044604925031E-15 1.05 0"
+        rpy="0 0 0" />
+      <mass
+        value="1896" />
+      <inertia
+        ixx="904.700000000001"
+        ixy="-5.68699980202549E-13"
+        ixz="-2.04137178507685E-13"
+        iyy="889.840000000002"
+        iyz="2.8492833092919E-13"
+        izz="1570.7" />
+    </inertial>
+    <visual>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/8l.STL" />
+      </geometry>
+      <material
+        name="">
+        <color
+          rgba="0.792156862745098 0.819607843137255 0.933333333333333 1" />
+      </material>
+    </visual>
+    <collision>
+      <origin
+        xyz="0 0 0"
+        rpy="0 0 0" />
+      <geometry>
+        <mesh
+          filename="package://library_world_assm/meshes/8l.STL" />
+      </geometry>
+    </collision>
+  </link>
+  <joint
+    name="8j"
+    type="fixed">
+    <origin
+      xyz="5 -2 2.2"
+      rpy="-1.5708 0 1.5708" />
+    <parent
+      link="base_link" />
+    <child
+      link="8l" />
+    <axis
+      xyz="0 0 0" />
+  </joint>
+</robot>

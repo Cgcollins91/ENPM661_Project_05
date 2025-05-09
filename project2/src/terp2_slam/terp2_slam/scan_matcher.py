@@ -68,7 +68,7 @@ class ScanMatcher(Node):
         # publish TF (odom_frontend → base_link)
         t = TransformStamped()
         t.header.stamp    = scan.header.stamp
-        t.header.frame_id = "odom_frontend"
+        t.header.frame_id = "odom"
         t.child_frame_id  = "base_link"
         t.transform.translation.x = float(self.pose_xy[0])
         t.transform.translation.y = float(self.pose_xy[1])

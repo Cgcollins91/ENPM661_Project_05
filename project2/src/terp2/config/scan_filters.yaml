@@ -1,0 +1,12 @@
+scan_filter_chain:
+  - name: drop_self_hits
+    type: laser_filters/LaserScanBoxFilter
+    params:
+      box_frame: base_link       # box is expressed in robot frame
+      # limits in *meters* (min < max)
+      min_x: -0.30               # behind sensor
+      max_x:  0.30               # in front of sensor
+      min_y: -0.25
+      max_y:  0.25
+      min_z: -0.40
+      max_z:  0.40

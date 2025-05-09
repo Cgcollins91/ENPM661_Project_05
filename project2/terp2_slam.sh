@@ -10,8 +10,9 @@
 
 BASE_PATH=/mnt/ENPM662_Project_05/project2
 cd ${BASE_PATH} || exit
+source /opt/ros/humble/setup.bash
+# colcon build --packages-select terp2_controller_py --symlink-install
 source ${BASE_PATH}/install/setup.bash
-# ros2 service call /slam_toolbox/reset std_srvs/srv/Empty {}
-ros2 launch terp2 gazebo.launch.py
+ros2 launch terp2_slam slam_custom.launch.py
 
 

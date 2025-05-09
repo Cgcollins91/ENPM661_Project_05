@@ -10,6 +10,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/terp2_slam/launch', ['launch/slam_custom.launch.py']),
+        ('share/terp2_slam/rviz', ['rviz/slam_custom.rviz']),
         ('share/' + package_name, ['package.xml']),
     ],
     install_requires=['setuptools'],

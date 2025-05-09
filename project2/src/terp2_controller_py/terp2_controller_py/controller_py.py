@@ -22,7 +22,13 @@ from rcl_interfaces.msg import SetParametersResult
 from std_msgs.msg import Float64MultiArray
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from gazebo_msgs.msg import ModelStates, LinkStates
+from std_msgs.msg import Bool
 
+
+
+
+REACHED_THRESH = 0.08      # metres – tweak to taste
+REACHED_RATE   =  5.0      # Hz   – how often we evaluate
 
 # ---------------------------------------------------------------------------#
 # Helpers                                                                    #
@@ -34,13 +40,16 @@ class PID:
         self.set_k_values(kp, ki, kd)
         self.reset()
 
+
     # ------------------------------------------------------------------ #
     def set_k_values(self, kp: float, ki: float, kd: float) -> None:
         self.kp, self.ki, self.kd = float(kp), float(ki), float(kd)
 
+
     def reset(self) -> None:
         self._prev_err = 0.0
         self._integral = 0.0
+
 
     # ------------------------------------------------------------------ #
     def calculate(self, error: float, dt: float) -> float:
@@ -94,6 +103,10 @@ class Terp2Controller(Node):
             JointTrajectory, "/gripper_controller/joint_trajectory", 10
         )
 
+        self.reached_pub = self.create_publisher(Bool,
+                                                 "/controller_py/goal_reached",
+                                                 qos_profile=1)
+
         # ----------------------------- subs ----------------------------- #
         self.create_subscription(
             LinkStates, "/gazebo/link_states", self.link_state_cb, 10
@@ -128,7 +141,7 @@ class Terp2Controller(Node):
 
         # PID objects
         self.pid_velocity = PID(5, 0.17, 1.7)
-        self.pid_steer = PID(0.7, 0.01, 0.1)
+        self.pid_steer = PID(1.7, 0.01, 0.1)
 
         # live outputs
         self.steer = 0.0
@@ -201,6 +214,14 @@ class Terp2Controller(Node):
             else:
                 self.get_logger().warn("Unknown parameter set: %s", p.name)
         return SetParametersResult(successful=True)
+    
+    def _reached_cb(self):
+        if self.goal_xy is None:                      # no active goal
+            self.reached_pub.publish(Bool(data=True))
+            return
+
+        self.reached_pub.publish(Bool(data=(self.goal_radius < REACHED_THRESH)))
+        self.get_logger().info(f"Distance to Goal {self.goal_radius}")
 
     # =================================================================== #
     #                         Control routines                            #
@@ -209,6 +230,7 @@ class Terp2Controller(Node):
         self.set_goals()
         self.pid_update()
         self.robot_go()
+        self._reached_cb()
 
     # ------------------------------------------------------------------- #
     def pid_update(self) -> None:
@@ -232,6 +254,7 @@ class Terp2Controller(Node):
             self.velocity = self.velocity_max
             self.get_logger().info("Going straight until viable turning radius…")
 
+
     # ------------------------------------------------------------------- #
     def robot_go(self) -> None:
         self.set_robot_steering(self.steer)
@@ -239,15 +262,18 @@ class Terp2Controller(Node):
         self.set_robot_joint_thetas(self.joint_goals)
         self.set_robot_gripper_joints(self.gripper_goals)
 
+
     # =============== low-level set-helpers (publishers) ================= #
     def set_robot_drive_wheels(self, velocity: float) -> None:
         msg = Float64MultiArray(data=[velocity, velocity])
         self.pub_vel.publish(msg)
 
+
     def set_robot_steering(self, steer_angle: float) -> None:
         ratio = steer_angle / self.steer_max if self.steer_max else 0.0
         msg = Float64MultiArray(data=[-ratio, ratio])
         self.pub_pos.publish(msg)
+
 
     def set_robot_joint_thetas(self, goals: List[float]) -> None:
         jt = JointTrajectory()
@@ -257,6 +283,7 @@ class Terp2Controller(Node):
         pt.time_from_start.sec = 1
         jt.points.append(pt)
         self.pub_arm.publish(jt)
+
 
     def set_robot_gripper_joints(self, goals: List[float]) -> None:
         jt = JointTrajectory()

@@ -19,6 +19,9 @@ def generate_launch_description():
 
     gazebo = get_package_share_directory('gazebo_ros')
     robot = get_package_share_directory('terp2')
+    model_path = os.path.join(robot, 'models')
+
+    
 
     world = os.path.join(
         get_package_share_directory('terp2'),
