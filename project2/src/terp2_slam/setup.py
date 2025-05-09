@@ -24,7 +24,8 @@ setup(
         'console_scripts': [
             'mapper_node   = terp2_slam.mapper_node:main',
             'scan_matcher  = terp2_slam.scan_matcher:main',
-            'box_filter = terp2_slam.box_filter:main',
+            'box_filter    = terp2_slam.box_filter:main',
+            "save_grid     = terp2_slam.save_grid:main",
         ],
     },
 )
