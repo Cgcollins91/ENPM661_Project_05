@@ -14,7 +14,7 @@ def generate_launch_description():
 
     controller_node = Node(
         package   = 'terp2_controller_py',
-        executable = 'controller_py',      # ← entry-point name in setup.py
+        executable = 'controller_py',     
         name      = 'controller_py',
         output    = 'screen',
         parameters=[{'use_sim_time': use_sim_time}],
@@ -22,15 +22,13 @@ def generate_launch_description():
 
     imu_to_odom_node = Node(
         package   = 'terp2_controller_py',
-        executable = 'imu_to_odom',        # ← entry-point name in setup.py
+        executable = 'imu_to_odom',        
         name      = 'imu_to_odom',
         output    = 'screen',
         parameters=[{'use_sim_time': use_sim_time}],
     )
 
     return LaunchDescription([
-        # you can expose the arg on the command line:
-        #   ros2 launch terp2_controller_py controllers_launch.py use_sim_time:=false
         controller_node,
         imu_to_odom_node,
     ])

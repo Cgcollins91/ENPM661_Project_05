@@ -67,14 +67,15 @@ class ScanMatcher(Node):
 
         # publish TF (odom_frontend → base_link)
         t = TransformStamped()
-        t.header.stamp    = scan.header.stamp
-        t.header.frame_id = "odom"
-        t.child_frame_id  = "base_link"
+        t.header.stamp            = scan.header.stamp
+        t.header.frame_id         = "odom"
+        t.child_frame_id          = "base_link"
         t.transform.translation.x = float(self.pose_xy[0])
         t.transform.translation.y = float(self.pose_xy[1])
         t.transform.translation.z = 0.0
-        qz = math.sin(self.pose_yaw/2)
-        qw = math.cos(self.pose_yaw/2)
+
+        qz                     = math.sin(self.pose_yaw/2)
+        qw                     = math.cos(self.pose_yaw/2)
         t.transform.rotation.z = qz
         t.transform.rotation.w = qw
         self.br.sendTransform(t)

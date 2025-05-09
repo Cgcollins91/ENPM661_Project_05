@@ -7,7 +7,8 @@ from rcl_interfaces.srv    import SetParameters          # service used by ROS 2
 from rclpy.parameter       import Parameter
 from std_msgs.msg import Bool
 
-FREE = 0; UNKNOWN = -1
+FREE = 0
+UNKNOWN = -1
 SCAN_RADIUS = 3.0      # m around robot to look for frontiers
 
 class FrontierExplorer(Node):

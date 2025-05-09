@@ -29,12 +29,12 @@ def generate_launch_description():
 
     robot_pkg = get_package_share_directory(robot_name)
 
-    position = [0.0, 0.0, 0.8]
+    position    = [0.0, 0.0, 0.8]
     orientation = [0.0, 0.0, 0.0]
 
 
     robot_urdf = os.path.join(robot_pkg, "urdf", xacro_file)
-    xml = xacro.process_file(robot_urdf).toxml()
+    xml        = xacro.process_file(robot_urdf).toxml()
     controller_params_file = os.path.join(robot_pkg, 'config', 'control.yaml')
 
 
@@ -136,13 +136,7 @@ def generate_launch_description():
         parameters = [{'use_sim_time': use_sim_time}],
     )
 
-    # imu_to_odom_node = Node(
-    #     package   = 'terp2_controller_py',
-    #     executable = 'imu_to_odom',        # ← entry-point name in setup.py
-    #     name      = 'imu_to_odom',
-    #     output    = 'screen',
-    #     parameters=[{'use_sim_time': use_sim_time}]
-    # )
+
     model_state_to_odom_node = Node(
         package    = 'terp2_controller_py',
         executable = 'model_state_to_odom',        # ← entry-point name in setup.py
@@ -176,15 +170,14 @@ def generate_launch_description():
             sim_time_arg,
             robot_state_publisher,
             robot_node,
-            controller_manager,  # Added controller manager node
+            controller_manager,  
             joint_state_broadcaster_spawner,
             delayed_position_controller_spawner,
             delayed_velocity_controller_spawner,
-            delayed_arm_controller_spawner,  # Added delayed arm controller spawner
-            delayed_gripper_controller_spawner,  # Added delayed arm controller spawner
+            delayed_arm_controller_spawner,  
+            delayed_gripper_controller_spawner,  
             controller_node,
             model_state_to_odom_node 
-            # imu_to_odom_node,
-            # rviz_node
+             # rviz_node
         ]
     )

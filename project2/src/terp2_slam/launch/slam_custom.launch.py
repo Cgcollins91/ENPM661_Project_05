@@ -5,26 +5,8 @@ from launch.substitutions import PathJoinSubstitution
 from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description():
-    pkg = get_package_share_directory('terp2_slam')
-    robot = get_package_share_directory('terp2')
+    pkg             = get_package_share_directory('terp2_slam')
     rviz_config_dir = PathJoinSubstitution([pkg, "rviz", "slam_custom.rviz"])
-    laser_filter_config = PathJoinSubstitution([robot, 'config', 'scan_filter.yaml' ])
-    scan_filter_params = {
-        # this dict becomes the "ros__parameters" namespace
-        "scan_filter_chain": [
-            {
-                "name":  "drop_self_hits",
-                "type":  "laser_filters/LaserScanBoxFilter",
-                "params": {
-                    "box_frame": "laser_link",
-                    "min_x": -0.30,
-                    "max_x":  0.30,
-                    "min_y": -0.30,
-                    "max_y":  0.30,
-                    "min_z": -0.40,
-                    "max_z":  0.80,
-                },
-            }]}
     
     return LaunchDescription([
 
@@ -43,13 +25,12 @@ def generate_launch_description():
             output     = 'screen',
         ),
 
-                # ---------- scan matcher (odometry) ----------
+        # ---------- scan matcher (odometry) ----------
         Node(
             package   = 'terp2_slam',
             executable= 'scan_matcher',
             name      = 'scan_matcher',
             parameters=[{'use_sim_time': True}],
-            # remappings=[('scan', '/scan_filtered')],   # <── use filtered scan
             output    = 'screen'
         ),
 
@@ -59,7 +40,6 @@ def generate_launch_description():
             executable= 'mapper_node',
             name      = 'mapper',
             parameters=[{'use_sim_time': True}],
-            # remappings=[('scan', '/scan_filtered')],   # <── use filtered scan
             output    = 'screen'
         ),
 
