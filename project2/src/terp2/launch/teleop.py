@@ -25,7 +25,7 @@ import numpy as np
 # Define key codes
 LIN_VEL_STEP_SIZE = 1
 ANG_VEL_STEP_SIZE = 0.05
-ARM_STEP_SIZE = 0.1
+ARM_STEP_SIZE     = 0.1
 GRIPPER_STEP_SIZE = 0.01
 
 class KeyboardControlNode(Node):
