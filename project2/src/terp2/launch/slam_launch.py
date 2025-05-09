@@ -31,28 +31,24 @@ def generate_launch_description():
     slam_pkg = get_package_share_directory('terp2_slam')
     rviz_config_dir = PathJoinSubstitution([slam_pkg, "rviz", "slam_custom.rviz"])
 
+    laser_filter_config = PathJoinSubstitution([robot_pkg, 'config', 'scan_filter.yaml' ])
     
-
-    robot_urdf = os.path.join(robot_pkg, "urdf", xacro_file)
-    xml = xacro.process_file(robot_urdf).toxml()
-    controller_params_file = os.path.join(robot_pkg, 'config', 'control.yaml')
-
 
     entity_name = robot_name # +"-"+str(random.random())
     use_sim_time = LaunchConfiguration('use_sim_time', default='True')
 
-    controller_node = Node(
-        package   = 'terp2_controller_py',
-        executable = 'controller_py',      # ← entry-point name in setup.py
-        name      = 'controller_py',
-        output    = 'screen',
-        parameters=[{'use_sim_time': use_sim_time}],
-    )
+    # controller_node = Node(
+    #     package   = 'terp2_controller_py',
+    #     executable = 'controller_py',      # ← entry-point name in setup.py
+    #     name      = 'controller_py',
+    #     output    = 'screen',
+    #     parameters=[{'use_sim_time': use_sim_time}],
+    # )
 
-    imu_to_odom_node = Node(
+    explorer = Node(
         package   = 'terp2_controller_py',
-        executable = 'imu_to_odom',        # ← entry-point name in setup.py
-        name      = 'imu_to_odom',
+        executable = 'explorer',        # ← entry-point name in setup.py
+        name      = 'explorer',
         output    = 'screen',
         parameters=[{'use_sim_time': use_sim_time}]
     )
@@ -74,78 +70,63 @@ def generate_launch_description():
              parameters=[{'use_sim_time': True}],
              arguments=['-d', rviz_config_dir]
     )
+    filtered_scan = Node(
+            package="laser_filters",
+            executable="scan_to_scan_filter_chain",
+            name="scan_filter",
+            parameters=[laser_filter_config,
+                         {'use_sim_time': True} ],
+            remappings=[
+                ("scan",          "/scan"),          # input
+                ("scan_filtered", "/scan_filtered")  # output
+            ]
+        ),
 
  
-    delayed_pid_controller_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=imu_to_odom_node,
-            on_exit=[controller_node],
-        )
-    )
+    # delayed_pid_controller_spawner = RegisterEventHandler(
+    #     event_handler=OnProcessExit(
+    #         target_action=imu_to_odom_node,
+    #         on_exit=[controller_node],
+    #     )
+    # )
 
 
-    delayed_slam_spawner =RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=imu_to_odom_node,
-            on_exit=[terp2_slam],
-        )
-    )
+    # delayed_slam_spawner =RegisterEventHandler(
+    #     event_handler=OnProcessExit(
+    #         target_action=imu_to_odom_node,
+    #         on_exit=[terp2_slam],
+    #     )
+    # )
 
-    delayed_mapper_spawner = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=terp2_slam,
-            on_exit=[mapper],
-        )
-    )
+    # delayed_mapper_spawner = RegisterEventHandler(
+    #     event_handler=OnProcessExit(
+    #         target_action=terp2_slam,
+    #         on_exit=[mapper],
+    #     )
+    # )
 
-    delayed_rviz_slam = RegisterEventHandler(
-        event_handler=OnProcessExit(
-            target_action=mapper,
-            on_exit=[slam_rviz],
-        )
-    )
+    # delayed_rviz_slam = RegisterEventHandler(
+    #     event_handler=OnProcessExit(
+    #         target_action=mapper,
+    #         on_exit=[slam_rviz],
+    #     )
+    # )
 
 
     gui_arg = launch.actions.DeclareLaunchArgument(name='gui', default_value='True', description='Flag to enable joint_state_publisher_gui')
     sim_time_arg = launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True', description='Flag to enable use_sim_time')
 
-    # RVIZ Configuration
-    # rviz_config_dir = PathJoinSubstitution([FindPackageShare("terp2"), "rviz", "terp2.rviz"])
-    # rviz_node = Node(
-    #     package='rviz2',
-    #     executable='rviz2',
-    #     output='screen',
-    #     name='rviz_node',
-    #     parameters=[{'use_sim_time': True}],
-    #     arguments=['-d', rviz_config_dir]
-    # )
-    # joint_state_gui=Node(
-    #     package='joint_state_publisher_gui',
-    #     executable='joint_state_publisher_gui',
-    #     name='joint_state_publisher_gui',
-    #     output='screen',
-    #     parameters=[{'use_sim_time': use_sim_time}],
-    # )
-    # rviz_arg = launch.actions.DeclareLaunchArgument(name='rvizconfig', default_value=rviz_config_dir,
-    #                                  description='Absolute path to rviz config file')
-    # Static TF Transform
-    # tf=Node(
-    #     package='tf2_ros',
-    #     executable='static_transform_publisher',
-    #     name='static_transform_publisher',
-    #     output='screen',
-    #     arguments=['1', '0', '0', '0', '0', '0', '1', '/base_link',  '/base_link'  ],
-    # )
+ 
 
     return LaunchDescription(
         [
             gui_arg,
             sim_time_arg,
-            imu_to_odom_node,
+            explorer,
             terp2_slam,
-            mapper 
-            delayed_mapper_spawner,
-            delayed_rviz_slam,
+            mapper,
+            filtered_scan
+
 
             # rviz_node
         ]

@@ -11,17 +11,17 @@ def generate_launch_description():
     laser_filter_config = PathJoinSubstitution([robot, 'config', 'scan_filter.yaml' ])
     return LaunchDescription([
 
-        # Node(
-        #     package="laser_filters",
-        #     executable="scan_to_scan_filter_chain",
-        #     name="scan_filter",
-        #     parameters=[laser_filter_config,
-        #                  {'use_sim_time': True} ],
-        #     remappings=[
-        #         ("scan",          "/scan"),          # input
-        #         ("scan_filtered", "/scan_filtered")  # output
-        #     ]
-        # ),
+        Node(
+            package="laser_filters",
+            executable="scan_to_scan_filter_chain",
+            name="scan_filter",
+            parameters=[laser_filter_config,
+                         {'use_sim_time': True} ],
+            remappings=[
+                ("scan",          "/scan"),          # input
+                ("scan_filtered", "/scan_filtered")  # output
+            ]
+        ),
 
                 # ---------- scan matcher (odometry) ----------
         Node(

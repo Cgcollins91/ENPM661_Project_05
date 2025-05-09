@@ -24,38 +24,73 @@ class FrontierExplorer(Node):
         self.create_subscription(
             Bool, "/controller_py/goal_reached",
             self._reached_cb, 10)
-        self.set_controller_goal([0.0, 0.0])
+        self.set_controller_goal([7.0, 0.0]) #[0.0, 0.0]
         self.goal_reached = True          # start “free to send”
 
         # ONLY FOR TESTING AND TUNING SLAM PARMS
-        self.point_1 = [7.0, 0.0]
-        self.point_2 = [-7.0, 0.0]
-        self.tune_point = 'point1'
+        self.test_points = [ [7.0, 0.0],
+                             [1.0, 0.0],
+                             [5.0, 0.0],
+                             [1.0, 0.0],
+                             [-7.0, 0.0],
+                             [1.0, 0.0],
+                             [-5.0, 0.0]
+                             ]
+
+        self.tune_point_i = 0
         self.TUNE_MODE = True
+        self.pause_secs = 4.0               # 4-second cool-down
+        self._paused = False                # “are we currently in a pause?”
+        self._pause_timer = None            # rclpy.Timer instance (created on-demand)
 
 
     # =========================================================
     #  Incoming map → choose a frontier cell → push to controller
     # =========================================================
+    def _unpause_once(self):
+        """
+        executes once after `pause_secs`, then destroys
+        the timer so it will never fire again.
+        """
+        self.get_logger().info("Pause finished – explorer resumes")
+        self._paused = False
+
+        # stop and dispose of the timer *inside* the callback
+        if self._pause_timer is not None:
+            self._pause_timer.cancel()
+            self.destroy_timer(self._pause_timer)
+            self._pause_timer = None
+
+
 
     def _reached_cb(self, msg: Bool):
         self.goal_reached = msg.data
+        if self.goal_reached and not self._paused:
+            self.get_logger().info("Goal reached – pausing for %.1f s" %
+                               self.pause_secs)
+
+            self._paused = True
+            # create ONE periodic timer; we’ll destroy it in the callback
+            self._pause_timer = self.create_timer(
+                self.pause_secs,               # period
+                self._unpause_once             # callback
+            )
 
     def map_cb(self, msg: OccupancyGrid):
         self.map = msg
 
-        if not self.goal_reached:          # robot still driving → do nothing
+        if self._paused or not self.goal_reached:
             return
-        if self.TUNE_MODE and self.goal_reached and self.tune_point=='point1':
-            self.tune_point='point2'
-        elif self.TUNE_MODE and self.goal_reached and self.tune_point=='point2':
-            self.tune_point='point1'
-
+        
+        if self.tune_point_i == 7:
+            self.tune_point_i = 0
+        if self.TUNE_MODE and self.goal_reached:
+            self.tune_point_i = (self.tune_point_i + 1) % len(self.test_points)
+            goal_str = self.test_points[self.tune_point_i]
             
-        if self.TUNE_MODE and self.tune_point=='point1':
-            goal_str = self.point_1
-        elif self.TUNE_MODE and self.tune_point=='point2':
-            goal_str = self.point_2
+        elif self.TUNE_MODE:
+            goal_str = self.test_points[self.tune_point_i]
+
         else:
             goal_xy = self.pick_frontier_goal()
             x, y = goal_xy

@@ -39,7 +39,7 @@ class ScanMatcher(Node):
         self.pose_yaw= 0.0
 
         self.br = TransformBroadcaster(self)
-        self.create_subscription(LaserScan, "/scan", self.cb, 10)
+        self.create_subscription(LaserScan, "/scan_filtered", self.cb, 10)
 
     def cb(self, scan):
         cur_xy = scan_to_xy(scan)

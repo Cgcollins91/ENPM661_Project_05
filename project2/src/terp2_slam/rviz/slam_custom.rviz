@@ -7,6 +7,7 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1
+        - /TF1/Frames1
         - /Map1
         - /Map1/Topic1
         - /LaserScan1
@@ -57,49 +58,49 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
         base_link:
           Value: true
         imu_link:
-          Value: true
+          Value: false
         lidar_link:
           Value: true
         link_arm_1:
           Value: true
         link_arm_2:
-          Value: true
+          Value: false
         link_arm_3:
-          Value: true
+          Value: false
         link_arm_4:
-          Value: true
+          Value: false
         link_arm_5:
-          Value: true
+          Value: false
         link_axle:
-          Value: true
+          Value: false
         link_drivewheel_left:
-          Value: true
+          Value: false
         link_drivewheel_right:
-          Value: true
+          Value: false
         link_gripper_base:
-          Value: true
+          Value: false
         link_gripper_gear:
-          Value: true
+          Value: false
         link_gripper_pad1:
-          Value: true
+          Value: false
         link_gripper_pad2:
-          Value: true
+          Value: false
         link_swivel_back:
-          Value: true
+          Value: false
         link_swivel_front:
-          Value: true
+          Value: false
         link_swivelwheel_back:
-          Value: true
+          Value: false
         link_swivelwheel_front:
-          Value: true
+          Value: false
         map:
-          Value: true
+          Value: false
         odom:
-          Value: true
+          Value: false
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -252,7 +253,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 21.142269134521484
+      Distance: 8.90839672088623
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -267,10 +268,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.6103979349136353
+      Pitch: 0.8903977870941162
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 6.198582649230957
+      Yaw: 6.12857723236084
     Saved: ~
 Window Geometry:
   Displays:

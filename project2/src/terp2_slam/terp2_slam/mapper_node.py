@@ -55,7 +55,7 @@ class Mapper(Node):
 
         # Laser-scan subscription -----------------------------
         self.create_subscription(
-            LaserScan, "/scan", self.scan_cb, qos_profile_sensor_data
+            LaserScan, "/scan_filtered", self.scan_cb, qos_profile_sensor_data
         )
 
         # periodic (dynamic) map→odom update ------------------

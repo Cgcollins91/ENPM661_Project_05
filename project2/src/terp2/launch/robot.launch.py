@@ -128,6 +128,22 @@ def generate_launch_description():
     gui_arg = launch.actions.DeclareLaunchArgument(name='gui', default_value='True', description='Flag to enable joint_state_publisher_gui')
     sim_time_arg = launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True', description='Flag to enable use_sim_time')
 
+    controller_node = Node(
+        package   = 'terp2_controller_py',
+        executable = 'controller_py',      # ← entry-point name in setup.py
+        name      = 'controller_py',
+        output    = 'screen',
+        parameters=[{'use_sim_time': use_sim_time}],
+    )
+
+    imu_to_odom_node = Node(
+        package   = 'terp2_controller_py',
+        executable = 'imu_to_odom',        # ← entry-point name in setup.py
+        name      = 'imu_to_odom',
+        output    = 'screen',
+        parameters=[{'use_sim_time': use_sim_time}]
+    )
+
     # RVIZ Configuration
     # rviz_config_dir = PathJoinSubstitution([FindPackageShare("terp2"), "rviz", "terp2.rviz"])
     # rviz_node = Node(
@@ -168,6 +184,8 @@ def generate_launch_description():
             delayed_velocity_controller_spawner,
             delayed_arm_controller_spawner,  # Added delayed arm controller spawner
             delayed_gripper_controller_spawner,  # Added delayed arm controller spawner
+            controller_node,
+            imu_to_odom_node,
             # rviz_node
         ]
     )
