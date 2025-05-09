@@ -29,7 +29,7 @@ def generate_launch_description():
 
     robot_pkg = get_package_share_directory(robot_name)
 
-    position = [0.0, 0.0, 0.8]
+    position = [0.0, 0.0, 2.0]
     orientation = [0.0, 0.0, 0.0]
 
 
@@ -125,6 +125,13 @@ def generate_launch_description():
         )
     )
 
+    delayed_jsb_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=controller_manager,
+            on_exit=[joint_state_broadcaster_spawner],
+        )
+    )
+
     gui_arg = launch.actions.DeclareLaunchArgument(name='gui', default_value='True', description='Flag to enable joint_state_publisher_gui')
     sim_time_arg = launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True', description='Flag to enable use_sim_time')
 
@@ -162,8 +169,9 @@ def generate_launch_description():
             sim_time_arg,
             robot_state_publisher,
             robot_node,
-            controller_manager,  # Added controller manager node
+            #controller_manager,  # Added controller manager node
             joint_state_broadcaster_spawner,
+            delayed_jsb_spawner,
             delayed_position_controller_spawner,
             delayed_velocity_controller_spawner,
             delayed_arm_controller_spawner,  # Added delayed arm controller spawner

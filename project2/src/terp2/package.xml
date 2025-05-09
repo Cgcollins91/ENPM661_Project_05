@@ -18,9 +18,13 @@
   <depend>tf2_ros</depend>
   <depend>ros2_control</depend>
   <!-- end jsf add -->
-
+  <exec_depend>controller_manager</exec_depend>
+  <exec_depend>hardware_interface</exec_depend>
+  <exec_depend>joint_state_broadcaster</exec_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
+  <build_depend>hardware_interface</build_depend>
+  <build_depend>pluginlib</build_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

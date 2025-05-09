@@ -8,11 +8,11 @@
 # Please see the project report for a list of references, or contact
 # the team with specific questions.
 
-BASE_PATH=/mnt/ENPM662_Project_05/project2
-cd ${BASE_PATH} || exit
+BASE_PATH=~/ENPM662_Project_05/project2
+cd ~/ENPM662_Project_05/project2 || exit
 #source /opt/ros/humble/setup.bash
 #colcon build --packages-select terp2_controller
-source ${BASE_PATH}/install/setup.bash
+source ~/ENPM662_Project_05/project2/install/setup.bash
 ros2 run terp2_controller terp2_controller
 
 
