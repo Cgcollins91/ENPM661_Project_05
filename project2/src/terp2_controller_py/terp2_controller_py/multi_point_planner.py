@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
-
 #############################
 # Dependencies
 #############################
-import pygame
-import pygame.gfxdraw
 import time
 import math
 import heapq
 import numpy as np
 import csv
+import os, csv, math, heapq, time, numpy as np
+import rclpy
+from rclpy.node   import Node
+from rclpy.qos    import QoSProfile, ReliabilityPolicy, DurabilityPolicy
+from std_msgs.msg       import Float64MultiArray
+from nav_msgs.msg       import Path
+from geometry_msgs.msg  import PoseStamped
+
+CSV_FILE = "map.csv"       # param-ise if you like
+
 
 
 def CheckOpenList(coords, open_list):
@@ -52,21 +58,6 @@ def CheckClosedList(coords, closed_list):
 
 
 
-def round_and_get_v_index(node):
-   #  Round x, y coordinates to nearest half to ensure our indexing is aligned 
-   #  Round Theta to nearest 5 degrees
-   
-   x           = round(node[0] * 2, 1) / 2
-   y           = round(node[1] * 2, 1) / 2
-   theta_deg   = node[2]
-
-   x_v_idx     = int(x * 2)
-   y_v_idx     = int(y * 2)
-
-   theta_deg_rounded = round(theta_deg / 5) * 5 # round to nearest 5 degrees
-   theta_v_idx       = int(theta_deg_rounded % 360) // 5
-
-   return (x, y, theta_deg_rounded), x_v_idx, y_v_idx, theta_v_idx
 
 
 def move_set(node, u_l, u_r, buffer_set, wheel_radius, wheel_base, t_curve=2):
@@ -111,15 +102,6 @@ def move_set(node, u_l, u_r, buffer_set, wheel_radius, wheel_base, t_curve=2):
     return (x_new, y_new, theta_new), cost
 
 
-def ValidMove(node):
-    # Check if move is valid
-    if((node[0] < 0) or (node[0] >= 2000)):
-        return False
-    elif((node[1] < 0) or (node[1] >= 1500)):
-        return False
-    else:
-        return True
-
 
 def reverse_move(node,movement, wheel_radius, wheel_base, t_curve):
     # Reverse Move for Curve Plotting
@@ -161,25 +143,26 @@ def InObjectSpace(x, y, CELL_SIZE=.05):
     MAP_SIZE     = int(20 // CELL_SIZE)        
     right_most_x = MAP_SIZE - 1
     half_way_x   = int(MAP_SIZE // 2)
+    half_way_y   = int(MAP_SIZE // 2)
 
     # Object 1
-    if ((0<=x<=1999) and (0<=y<=99)):
+    if ((0<=x<=right_most_x) and (0<=y<=99)):
         return True
     
     # Object 2
-    elif ((0<=x<=999) and (399<=y<=499)): 
+    elif ((0<=x<=half_way_x) and (399<=y<=499)): 
         return True
     
     # Object 3
-    elif ((1499<=x<=1999) and (399<=y<=499)):
+    elif ((1499<=x<=right_most_x) and (399<=y<=499)):
         return True
     
     # Object 4
-    elif((0<=x<=999) and (999<=y<=1099)):
+    elif((0<=x<=half_way_x) and (half_way_y<=y<=1099)):
         return True
 
     # Object 5
-    elif((1499<=x<=1999) and (999<=y<=1099)):
+    elif((1499<=x<=right_most_x) and (half_way_y<=y<=1099)):
         return True
     
     # Object 6
@@ -232,165 +215,18 @@ def euclidean_distance(node, goal_state):
     return math.sqrt((goal_state[0] - node[0])**2 + (goal_state[1] - node[1])**2)
 
 
-def DrawBoard(rows, cols, pxarray, pallet, C2C, clear, r, screen):
-    """
-    Draw the initial game board, colors depict:
-    White: In object space
-    Green: Buffer Zone
-    Black: Action Space
 
-    Turn clearance and robot radius used to calculate the total buffer zone that will be placed arround the walls and objects
-    Robot will still be depicted on the screen as a "point-robot" as the center-point of the robot is the most import part for calculations
-
-    Inputs:
-        rows:    x-axis size
-        cols:    y-axis size
-        pxarray: pixel array for screen that allows for drawing by point
-        pallet:  color dictionary with rgb codes
-        clear:   clearance needed for turns in mm
-        r:       robot raidus in mm
-
-    Outputs:
-        buffer_set: set of points that fall within buffer zone, 
-                    used later for eliminating potential paths that navigate through the buffer zone 
-                    to a point outside of the buffer zone and object space
-    """
-    buffer_set = set()
-    buff_mod = clear + r
-    for x in range(1,rows-1):
-        for y in range(0,cols):
-            in_obj = InObjectSpace(x,y)
-            if (in_obj):
-                pygame.draw.circle(screen,pygame.Color(pallet["green"]),(x,y),buff_mod,0)
-  
-            elif(0<y<=buff_mod or (1498-buff_mod)<=y<1499):
-                    pxarray[x,y] = pygame.Color(pallet["green"])
-
-    for x in range(0,rows):
-        for y in range(0,cols):
-            if pxarray[x,y] == 0:
-                pxarray[x,y] = pygame.Color(pallet["white"])
-
-    for x in range(0,rows):
-        for y in range(0,cols):
-            if InObjectSpace(x,y):
-                pxarray[x,y] = pygame.Color(pallet["black"])
-    
-    for x in range(0,rows):
-        for y in range(0,cols):
-            if screen.get_at((x,y)) != pygame.Color(pallet["white"]):
-                buffer_set.add((x,y))
-
-    return buffer_set
-
-
-
-def FillCostMatrix(C2C, pxarray, pallet, thresh, rows, cols, screen):
+def FillCostMatrix(C2C, map, thresh, rows, cols):
     for x in range(0, int(rows/thresh)):
         for y in range(0, int(cols/thresh)):
-            if((pxarray[int(math.floor(x*thresh)), int(math.floor(y*thresh))] == screen.map_rgb(pallet["black"])) or \
-               (pxarray[int(math.floor(x*thresh)), int(math.floor(y*thresh))] == screen.map_rgb(pallet["green"]))):
+            if((map[int(math.floor(x*thresh)), int(math.floor(y*thresh))] == 100) ) :
                 C2C[x,y] = -1
             else:
                 C2C[x,y] = np.inf
-
+    return C2C
                                  
-def A_Star(start_node, goal_node, OL, parent, V, C2C, costsum, RPM1, RPM2, 
-           t_curve,  pxarray, pallet, screen, goal_threshold, buffer_set,
-           wheel_radius, wheel_base
-           ):
-    """
-    Run A* Search algorithm over our board
-    """
 
-    solution_path = []
-    
-    start_state, x_v_idx, y_v_idx, theta_v_idx = round_and_get_v_index(start_node[1])
-    start_cost_state = (x_v_idx, y_v_idx, theta_v_idx)
-    C2C[x_v_idx, y_v_idx] = 0.0
-    costsum[start_cost_state] = 0.0 + euclidean_distance(start_node[1], goal_node)
 
-    heapq.heappush(OL, start_node)
-    
-    while OL:
-        node = heapq.heappop(OL)
-
-        # Take popped node and center it, along with finding the index values for the V matrix
-        fixed_node, x_v_idx, y_v_idx, theta_v_idx = round_and_get_v_index(node[1])
-        
-        # Add popped node to the closed list
-        V[x_v_idx, y_v_idx, theta_v_idx] = 1
-        arc_end    = node[1]
-        arc_speeds = node[2]
-        arc_xy = reverse_move(arc_end, arc_speeds, t_curve, wheel_radius, wheel_base)
-
-        pygame.draw.lines(screen,pygame.Color(pallet["blue"]),False,arc_xy,1)
-        pygame.display.update()
-        
-        # Check if popped node is within the goal tolerance region
-        # If so, end exploration and backtrace to generate the soluion path
-        # If not, apply action set to node and explore the children nodes
-        if(euclidean_distance(fixed_node, goal_node) <= goal_threshold ):
-            solution_path = GeneratePath((fixed_node, arc_speeds), parent, start_state)
-            return True, solution_path
-        else:
-            actions = [[0.0,  RPM1],
-                       [RPM1,  0.0],
-                       [RPM1, RPM1],
-                       [0.0,  RPM2],
-                       [RPM2,  0.0],
-                       [RPM2, RPM2],
-                       [RPM1, RPM2],
-                       [RPM2, RPM1]]
-            
-            # Walk through each child node created by action set and determine if it has been visited or not
-            for action in actions:
-                #if move_set(fixed_node, action[0], action[1]) is not None:
-                test = move_set(fixed_node, action[0], action[1], buffer_set, t_curve, wheel_radius, wheel_base)
-                if test is not None:
-
-                    child_node, child_cost = test
-                    
-                    if not ValidMove(child_node): continue
-                    
-                    child_node_fixed, child_x_v_idx, child_y_v_idx, child_theta_v_idx = round_and_get_v_index(child_node)
-                    child_cost_node = (child_x_v_idx, child_y_v_idx, child_theta_v_idx)
-                    
-                    # Check if node is in obstacle space or buffer zone
-                    try:
-                        if((pxarray[int(child_node_fixed[0]), int(child_node_fixed[1])] == screen.map_rgb(pallet["black"])) or \
-                           (pxarray[int(child_node_fixed[0]), int(child_node_fixed[1])] == screen.map_rgb(pallet["green"]))): continue
-                    except IndexError:
-                        continue  # Attempted move was outside bounds of the map
-                    
-                    # Check if node is in visited list
-                    # If not, check if in open list using cost matrix C2C
-                    if(V[child_cost_node] == 0):
-                        
-                        # If child is not in open list, create new child node
-                        if(C2C[child_x_v_idx, child_y_v_idx]  == np.inf):
-                            cost2go = round(euclidean_distance(child_node_fixed, goal_node),2)  # Calculate Cost to Go using heuristic equation Euclidean Distance
-                            cost2come = C2C[x_v_idx, y_v_idx] + child_cost  # Calculate Cost to Come using parent Cost to Come and step size
-                            parent[(child_node_fixed, (action[0],action[1]))] = (fixed_node, arc_speeds)     # Add child node to parent dictionary 
-                            
-                            C2C[child_x_v_idx, child_y_v_idx] = cost2come   # Update cost matrix with newly calculate Cost to Come
-                            costsum[child_cost_node] = cost2come + cost2go  # Calculate the total cost sum and add to reference dictionary (this will be used when determiniing optimal path)
-                            child = [costsum[child_cost_node], child_node_fixed,(action[0],action[1])]  # Create new child node --> [total cost, (x, y, theta)]... Total cost is used as priority determinant in heapq
-                            heapq.heappush(OL, child)   # push child node to heapq
-                        
-                    # Child was in visited list, see if new path is most optimal
-                    else:
-                        cost2go = round(euclidean_distance(child_node_fixed, goal_node),2)
-                        cost2come = C2C[x_v_idx, y_v_idx] + child_cost
-                        
-                        # Compare previously saved total cost estimate to newly calculated
-                        # If new cost is lower than old cost, update in cost matrix and reassign parent 
-                        if(costsum[child_cost_node] > (cost2come + cost2go)):  
-                            parent[(child_node_fixed, (action[0],action[1]))] = (fixed_node, arc_speeds)
-                            C2C[child_x_v_idx, child_y_v_idx] = cost2come
-                            costsum[child_cost_node] = cost2come + cost2go
-                            
-    return False, solution_path
 
 
 
@@ -454,163 +290,275 @@ def GetTargetPairs(dewey, bookstack, n, start_node):
     
 
 #%%
-# Initialize pygame
+class MultiPointPlanner(Node):
+    def __init__(self) -> None:
+        super().__init__("multi_point_planner")
 
-# Screen dimensions
-rows, cols = (2000, 1500)
+        # ---- parameters --------------------------------------------------
+        self.declare_parameter("csv_file", CSV_FILE)
+        self.declare_parameter("start", [0.0, 0.0, 0.0])   # x,y,θ°
+        self.declare_parameter("goal",  [2.0, 1.5, 0.0])
+        self.declare_parameter("rpm1",  10.0)
+        self.declare_parameter("rpm2",  15.0)
 
-# Define Lists
+        # ---- publishers --------------------------------------------------
+        self.path_pub = self.create_publisher(
+            Path, "/planned_path",
+            QoSProfile(depth=1,
+                       reliability=ReliabilityPolicy.RELIABLE,
+                       durability=DurabilityPolicy.TRANSIENT_LOCAL))
 
-TL = []  # Target List
-SL = []  # Solution list
-index_ctr  = 0
-solution   = []
-thresh     = 0.5
-wheel_radius = 5.0  # units: cm
-robot_radius = 30   # units: cm
-wheel_base   = 57.0 # units: cm
-t_curve = 1 # seconds to run curve
-goal_threshold = 5.0
-theta_bins = 72
+        self.wp_pub = self.create_publisher(
+            Float64MultiArray, "/waypoints", 1)
 
-V         = np.zeros((int(rows/thresh), int(cols/thresh), theta_bins))
-C2C       = np.zeros((int(rows/thresh), int(cols/thresh)))
+        # ---- compute once on startup ------------------------------------
+        self.compute_and_publish()
 
-# Define colors
-pallet = {"white":(255,  255, 255), 
-          "black":(0,      0,   0), 
-          "green":(4,    217,  13), 
-          "blue": (61,   119, 245), 
-          "red":  (242,   35,  24)
-          }
-
-# Define book rack goal points
-dewey = {000: (650.0, 550.0, 90.0),
-         100: (700.0, 150.0, 90.0),
-         200: (1650.0, 150.0, 90.0),
-         300: (1650.0, 550.0, 90.0),
-         400: (1650.0, 950.0, 270.0),
-         500: (1650.0, 1350.0, 270.0),
-         600: (700.0, 1350.0, 270.0),
-         700: (700.0, 950.0, 270.0)
-         }
-
-pygame.init()
-
-start_node = [0.0, (450.0, 749.0, 0), (0,0)]
-#goal_node  = (530.0, 149.0)
-RPM1 = 10
-RPM2 = 15
-
-# Collect User Input for:
-bookstack, n = GetUserInput()
-TL = GetTargetPairs(dewey, bookstack, n, start_node)
-
-
-# Define screen size
-clearance   = 18
-window_size = (rows+clearance, cols)
-screen = pygame.display.set_mode(window_size)
-pxarray = pygame.PixelArray(screen)
-
-
-# Grab start time before running the solver
-start_time = time.perf_counter()
-
-# Start running solver
-running = True
-while running:
-    # handle events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
     
-    for targ in range(0,n):
-    
-        # Draw board with objects and buffer zone
-        # rows:      size x-axis (named at one point, and forgot to change)
-        # cols:      size y-axis
-        # pallet:    color library with RGB values for drawing on pixel array
-        # C2C:       obsolete, starting costs set in FillCostMatrix()
-        # clearance: turn clearance for robot in mm 
-        # rradius:   robot radius in mm
-        buffer_set = DrawBoard(rows, cols, pxarray, pallet, C2C, clearance, robot_radius, screen)
-
-        # Update the screen
-        pygame.display.update()
-    
-        FillCostMatrix(C2C, pxarray, pallet, thresh, rows, cols, screen)
+    def round_and_get_v_index(self, node, scale):
+        #  Round x, y coordinates to nearest half to ensure our indexing is aligned 
+        #  Round Theta to nearest 5 degrees
         
-        start, goal = TL[targ]
+        x           = round(node[0] * scale, 1) / scale 
+        y           = round(node[1] * scale, 1) / scale 
+        theta_deg   = node[2]
+
+        x_v_idx     =  int(math.floor(x * scale))
+        y_v_idx     =  int(math.floor(y * scale))
+
+        x_v_idx  = max(0, min(x_v_idx , self.WIDTH  - 1))
+        y_v_idx  = max(0, min(y_v_idx , self.HEIGHT - 1))
+            # ---------------------------------
+
+        theta_deg_rounded = round(theta_deg / 5) * 5 # round to nearest 5 degrees
+        theta_v_idx       = int(theta_deg_rounded % 360) // 5
+
+        return (x, y, theta_deg_rounded), x_v_idx, y_v_idx, theta_v_idx
+
+    def ValidMove(self, node):
+        # Check if move is valid
+        if((node[0] < 0) or (node[0] >= self.HEIGHT)):
+            self.get_logger().info(f"***")
+            return False
+        elif((node[1] < 0) or (node[1] >= self.WIDTH)):
+            self.get_logger().info(f"***")
+            return False
+        else:
+            return True
+
+    def A_Star(self, start_node, goal_node, OL, parent, V, C2C, costsum, RPM1, RPM2, 
+            t_curve,  map, obstacles, scale, goal_threshold,
+            wheel_radius, wheel_base
+            ):
+        """
+        Run A* Search algorithm over our board
+        """
+
+        solution_path = []
+        
+        start_state, x_v_idx, y_v_idx, theta_v_idx = self.round_and_get_v_index(start_node[1], scale)
+        start_cost_state = (x_v_idx, y_v_idx, theta_v_idx)
+        C2C[x_v_idx, y_v_idx] = 0.0
+        costsum[start_cost_state] = 0.0 + euclidean_distance(start_node[1], goal_node)
+
+        heapq.heappush(OL, start_node)
+        
+        while OL:
+            node = heapq.heappop(OL)
+
+            # Take popped node and center it, along with finding the index values for the V matrix
+            fixed_node, x_v_idx, y_v_idx, theta_v_idx = self.round_and_get_v_index(node[1], scale)
+            
+            # Add popped node to the closed list
+            V[x_v_idx, y_v_idx, theta_v_idx] = 1
+            arc_end    = node[1]
+            arc_speeds = node[2]
+            arc_xy = reverse_move(arc_end, arc_speeds, t_curve, wheel_radius, wheel_base)
+
+            
+            # Check if popped node is within the goal tolerance region
+            # If so, end exploration and backtrace to generate the soluion path
+            # If not, apply action set to node and explore the children nodes
+            if(euclidean_distance(fixed_node, goal_node) <= goal_threshold ):
+                solution_path = GeneratePath((fixed_node, arc_speeds), parent, start_state)
+                return True, solution_path
+            else:
+                actions = [[0.0,  RPM1],
+                        [RPM1,  0.0],
+                        [RPM1, RPM1],
+                        [0.0,  RPM2],
+                        [RPM2,  0.0],
+                        [RPM2, RPM2],
+                        [RPM1, RPM2],
+                        [RPM2, RPM1]]
+                
+                # Walk through each child node created by action set and determine if it has been visited or not
+                for action in actions:
+                    #if move_set(fixed_node, action[0], action[1]) is not None:
+                    test = move_set(fixed_node, action[0], action[1], obstacles, t_curve, wheel_radius, wheel_base)
+                    if test is not None:
+
+                        child_node, child_cost = test
+                        
+                        if not self.ValidMove(child_node): continue
+                        
+                        child_node_fixed, child_x_v_idx, child_y_v_idx, child_theta_v_idx = self.round_and_get_v_index(child_node, scale)
+                        child_cost_node = (child_x_v_idx, child_y_v_idx, child_theta_v_idx)
+                        
+                        # Check if node is in obstacle space or buffer zone
+                        try:
+                            if((map[int(child_node_fixed[0]), int(child_node_fixed[1])] == 100 )): continue
+                        except IndexError:
+                            continue  # Attempted move was outside bounds of the map
+                        
+                        # Check if node is in visited list
+                        # If not, check if in open list using cost matrix C2C
+                        if(V[child_cost_node] == 0):
+                            self.get_logger().info(f"Exploring: {child_cost_node}")
+                            
+                            # If child is not in open list, create new child node
+                            if(C2C[child_x_v_idx, child_y_v_idx]  == np.inf):
+                                cost2go = round(euclidean_distance(child_node_fixed, goal_node),2)  # Calculate Cost to Go using heuristic equation Euclidean Distance
+                                cost2come = C2C[x_v_idx, y_v_idx] + child_cost  # Calculate Cost to Come using parent Cost to Come and step size
+                                parent[(child_node_fixed, (action[0],action[1]))] = (fixed_node, arc_speeds)     # Add child node to parent dictionary 
+                                
+                                C2C[child_x_v_idx, child_y_v_idx] = cost2come   # Update cost matrix with newly calculate Cost to Come
+                                costsum[child_cost_node] = cost2come + cost2go  # Calculate the total cost sum and add to reference dictionary (this will be used when determiniing optimal path)
+                                child = [costsum[child_cost_node], child_node_fixed,(action[0],action[1])]  # Create new child node --> [total cost, (x, y, theta)]... Total cost is used as priority determinant in heapq
+                                heapq.heappush(OL, child)   # push child node to heapq
+                                
+                        # Child was in visited list, see if new path is most optimal
+                        else:
+                            cost2go = round(euclidean_distance(child_node_fixed, goal_node),2)
+                            cost2come = C2C[x_v_idx, y_v_idx] + child_cost
+                            
+                            # Compare previously saved total cost estimate to newly calculated
+                            # If new cost is lower than old cost, update in cost matrix and reassign parent 
+                            if(costsum[child_cost_node] > (cost2come + cost2go)):  
+                                parent[(child_node_fixed, (action[0],action[1]))] = (fixed_node, arc_speeds)
+                                C2C[child_x_v_idx, child_y_v_idx] = cost2come
+                                costsum[child_cost_node] = cost2come + cost2go
+                                
+        return False, solution_path
+
+
+    # =====================================================================
+
+    def compute_and_publish(self):
+
+        # 1. read CSV ------------------------------------------------------
+        obstacles = []
+        WIDTH, HEIGHT = 200, 200
+        csv_path  = self.get_parameter("csv_file").value
+        map       = np.zeros((HEIGHT, WIDTH), np.uint8)
+        if not os.path.isabs(csv_path):
+            csv_path = os.path.join(os.path.dirname(__file__), csv_path)
+
+        with open(csv_path, newline="") as f:
+            for x, y, state in csv.reader(f):
+                if state == 100:
+                    # obstacles.append(x,y)
+                    map[y,x] = 100
+        scale = 1
+        map  = np.kron(map,
+                   np.ones((scale, scale), dtype=map.dtype))
+        (self.WIDTH, self.HEIGHT) = map.shape
+
+        for ix, iy in zip(*np.where(map == 100)):
+            obstacles.append((iy, ix))
+
+        rpm1  = self.get_parameter("rpm1").value
+        rpm2  = self.get_parameter("rpm2").value
+        start = self.get_parameter("start").value
+        goal  = self.get_parameter("goal").value
+        thresh = 1
+        theta_bins = 72
+        TL = []  # Target List
+        SL = []  # Solution list
+        V         = np.zeros((int(self.HEIGHT/thresh), int(self.WIDTH/thresh), theta_bins))
+        C2C       = np.zeros((int(self.HEIGHT/thresh), int(self.WIDTH/thresh)))       
+
+
+        C2C = FillCostMatrix(C2C, map, thresh, self.WIDTH, self.HEIGHT)
+        
         OL = []
         CL = {}
         parent  = {}
         costsum = {}
-        
-        pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(start[1][0]), start[1][1]), radius=5.0, width=0) 
-        pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(goal[0]), goal[1]), radius=5.0, width=1) 
-        
-        print("Iteration #", targ)
-        print("Start: ", start)
-        print("Goal: ", goal)
-        
-        # Start A_Star algorithm solver, returns game state of either SUCCESS (True) or FAILURE (false)
-        alg_state, solution = A_Star(start, goal, OL, parent, V, C2C, costsum, RPM1, RPM2, t_curve, pxarray,
-                                     pallet, screen, goal_threshold, buffer_set, wheel_radius, wheel_base)
-    
-        SL.append(solution)
-    
-        if alg_state == False:
-            print("Unable to find solution")
-            end_time = time.perf_counter()
-            running = False
-            break
-        else:
-            print("Solution found! Mapping now")
-            end_time = time.perf_counter()
-            if (targ >= (n+1)): running = False
-        
-        # Update the screen
-        pygame.display.update()
+        start_node = [0.0, (0.0, 0.0, 0.0), (0,0)]
+
+        # 2. build obstacle / buffer sets exactly like before --------------
+        # buffer_set, obstacle_set = self.build_buffer_sets(obstacles)
+
+        # 3. run your A* ---------------------------------------------------
 
 
+        # Define book rack goal points
+        dewey = {000: (-6.5, 5.5, 90.0),
+                100: (-8.0,  1.5, 90.0),
+                200: (7.5,   1.5, 90.0),
+                300: (6.5,   5.5, 90.0),
+                400: (6.5,   9.5, 270.0),
+                500: (6.5,  -3.5, 270.0),
+                600: (-7.0, -3.5, 270.0),
+                700: (-7.0, -6.5, 270.0)
+                }
 
-# Calculate run time for solver
-runtime = end_time - start_time
+        bookstack, n = GetUserInput()
+        TL           = GetTargetPairs(dewey, bookstack, n, start_node)
+       
 
-print("Time required to solve maze: ", runtime, " seconds")
+        for start, goal in TL:
+            start_xy_theta = start[1]
+            
+            start_node = [0.0,
+              ( int(start_xy_theta[0] * scale)+ (self.HEIGHT // 2)*.1, int(start_xy_theta[1] * scale)+ (self.HEIGHT // 2)*.1, start_xy_theta[2] ),
+              (0,0)]
+            
+            goal = (goal[0]+(self.HEIGHT // 2)*.1, goal[1]+(self.HEIGHT // 2)*.1, 0)
+            # goal_node, x_v_idx, y_v_idx, theta_v_idx = self.round_and_get_v_index(goal, scale)
 
+            success, solution = self.A_Star(
+                start_node,
+                goal, OL, parent, V, C2C, costsum,
+                5, 7,
+                t_curve=10.0,
+                # dummy placeholders (no Pygame)
+                map=map, obstacles=obstacles, scale = scale,
+                goal_threshold=0.5,
+                wheel_radius=.5, wheel_base=0.57)
+            
+            SL.append(solution)
 
-# center_y = 749
-# with open("./part01_waypoints.csv", "w", newline="") as file:
-#     writer = csv.writer(file)
-#     writer.writerow([RPM1, RPM2])
-#     for item in solution:
-#         x = item[0][0]
-#         y = center_y - item[0][1]
-#         writer.writerow([x, y])
+            if not success:
+                self.get_logger().error("Path-planner: no path found.")
+                return
 
-# # Draw start and goal points; start point will be filled, goal point will be hollow
-# pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(start_node[1][0]), start_node[1][1]), radius=5.0, width=0) # Start node    
-# pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(goal_node[0]), goal_node[1]), radius=5.0, width=1) # Goal node
+        # 4. publish nav_msgs/Path ----------------------------------------
+        path_msg = Path()
+        path_msg.header.frame_id = "path_plan"
+        for i, (pose, _) in enumerate(SL):
+            p = PoseStamped()
+            p.header.frame_id = "path_plan"
+            p.header.stamp = self.get_clock().now().to_msg()
+            p.pose.position.x = pose[0] / 100.0    # convert back to meters
+            p.pose.position.y = pose[1] / 100.0
+            path_msg.poses.append(p)
+        self.path_pub.publish(path_msg)
+        self.get_logger().info(f"Published nav_msgs/Path with {len(solution)} pts")
 
-# ## Draw solution path
-# final_path_xyt_list = []
-# final_path_drawing = []
-# for item in solution:
-#     xyt = (int(round(item[0][0])),int(round(item[0][1])),int(round(item[0][2])))
-#     final_curve = reverse_move(xyt,item[1])
-    
-#     pygame.draw.lines(screen,pygame.Color(pallet["red"]),False,final_curve,2)
-#     pygame.display.update()
+        # 5. publish way-points as Float64MultiArray ----------------------
+        flat = []
+        for pose, _ in SL:
+            flat.extend([pose[0] / 100.0, pose[1] / 100.0])
+        self.wp_pub.publish(Float64MultiArray(data=flat))
+        self.get_logger().info("Published way-point array")
 
-# Freeze screen on completed maze screen until user quits the game
-# (press close X on pygame screen)
-running = True
-while running:
-    # handle events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-            # quit pygame
-            pygame.quit()
+def main():
+    rclpy.init()
+    node = MultiPointPlanner()
+    rclpy.spin(node)
+    rclpy.shutdown()
+
+if __name__ == "__main__":
+    main()

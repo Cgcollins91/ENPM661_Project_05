@@ -24,6 +24,7 @@ setup(
                 'controller_py        = terp2_controller_py.controller_py:main',
                 'model_state_to_odom  = terp2_controller_py.model_state_to_odom:main',
                 'explorer             = terp2_controller_py.explorer:main',
+                'multi_point_planner  = terp2_controller_py.multi_point_planner:main'
                 
         ],
     },
