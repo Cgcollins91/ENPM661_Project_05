@@ -17,7 +17,7 @@ latched = QoSProfile(
     durability  = DurabilityPolicy.TRANSIENT_LOCAL,
     depth = 1)
 
-MAP_RES     = 0.07          # metres / cell
+MAP_RES     = 0.3          # metres / cell
 MAP_SIZE    = int(20 // MAP_RES)        # 400 × 400 → 20 m × 20 m
 L0          = 0.0           # log-odds prior
 L_OCC       = 2.0

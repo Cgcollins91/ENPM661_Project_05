@@ -1,192 +1,207 @@
 #!/usr/bin/env python3
-import rclpy, math, numpy as np
-from rclpy.node            import Node
-from nav_msgs.msg          import OccupancyGrid
-from geometry_msgs.msg     import PoseStamped
-from rcl_interfaces.srv    import SetParameters          # service used by ROS 2 parameter API
-from rclpy.parameter       import Parameter
-from std_msgs.msg import Bool
+import math, heapq, rclpy, numpy as np
+from rclpy.node                import Node
+from rclpy.qos                 import QoSProfile, ReliabilityPolicy, DurabilityPolicy
+from nav_msgs.msg              import OccupancyGrid, Odometry
+from std_msgs.msg              import Bool, Float32
+from rcl_interfaces.srv        import SetParameters
+from rclpy.parameter           import Parameter
+from scipy.ndimage             import label, binary_dilation
 
-FREE = 0
-UNKNOWN = -1
-SCAN_RADIUS = 3.0      # m around robot to look for frontiers
+# ─── map conventions ────────────────────────────────────────────────────
+FREE, UNKNOWN, OCC_VAL = 0, -1, 100
+INFLATE_M   = 0.35            # extra wall clearance (m)
+SCAN_RADIUS = 5.0             # “local” search radius (m)
+MIN_UNKNOWN_IN_CLUSTER = 15
+VISITED_EPS = 0.50            # don’t revisit a centroid closer than this (m)
+REACH_EPS   = 0.45            # counts as reached in *all* checks (m)
+MAX_ASTAR_CELLS = 30_000      # bail-out limit for A*
 
 class FrontierExplorer(Node):
     def __init__(self):
         super().__init__("frontier_explorer")
 
-        # --- subscribe to the live map ---
-        self.create_subscription(OccupancyGrid, "/clean_map", self.map_cb, 10)
-        self.map : OccupancyGrid | None = None
+        # latched map subscription
+        qos_latched = QoSProfile(depth=1,
+                                 reliability=ReliabilityPolicy.RELIABLE,
+                                 durability=DurabilityPolicy.TRANSIENT_LOCAL)
 
-        # --- service client that will set /controller_py parameters ---
+        self.create_subscription(OccupancyGrid, "/clean_map",
+                                 self.map_cb, qos_latched)
+        self.create_subscription(Odometry, "/odom", self.odom_cb, 20)
+        self.create_subscription(Bool, "/controller_py/goal_reached",
+                                 self.reached_cb, 10)
+        self.create_subscription(Float32, "/controller_py/goal_dist",
+                                 self.dist_cb, 10)
+
         self.param_cli = self.create_client(SetParameters,
                                             "/controller_py/set_parameters")
-        self.create_subscription(
-            Bool, "/controller_py/goal_reached",
-            self._reached_cb, 10)
-        self.set_controller_goal([7.0, 0.0]) #[0.0, 0.0]
-        self.goal_reached = True          # start “free to send”
 
-        # ONLY FOR TESTING AND TUNING SLAM PARMS
-        self.test_points = [ [7.0, 0.0],
-                             [1.0, 0.0],
-                             [5.0, 0.0],
-                             [1.0, 0.0],
-                             [-7.0, 0.0],
-                             [1.0, 0.0],
-                             [-5.0, 0.0]
-                             ]
+        # ── state ─────────────────────────────────────────────────────
+        self.map : OccupancyGrid | None = None
+        self.robot_xy : tuple[float, float] | None = None
+        self.goal_in_flight = False
+        self.goal_dist = float("inf")
+        self.current_goal : tuple[float, float] | None = None
+        self.visited : list[tuple[float, float]] = []
 
-        self.tune_point_i = 0
-        self.next_point   = 1
-        self.TUNE_MODE = True
-        self.pause_secs = 12.0               # 4-second cool-down
-        self._paused = False                # “are we currently in a pause?”
-        self._pause_timer = None            # rclpy.Timer instance (created on-demand)
-        self._last_reached = False 
+    # ───────────────────────── callbacks ───────────────────────────────
+    def odom_cb(self, msg: Odometry):
+        p = msg.pose.pose.position
+        self.robot_xy = (p.x, p.y)
 
+    def dist_cb(self, msg: Float32):
+        self.goal_dist = msg.data
+        if self.goal_in_flight and self.goal_dist < REACH_EPS:
+            self.get_logger().debug(
+                f"auto-reach via /goal_dist ({self.goal_dist:.2f} m ≤ {REACH_EPS})")
+            self.goal_in_flight = False
 
-    # =========================================================
-    #  Incoming map → choose a frontier cell → push to controller
-    # =========================================================
-    def _unpause_once(self):
-        """
-        executes once after `pause_secs`, then destroys
-        the timer so it will never fire again.
-        """
-        self.get_logger().info("Pause finished – explorer resumes")
-        self._paused = False
+    def reached_cb(self, msg: Bool):
+        if msg.data:
+            self.goal_in_flight = False
+            if self.current_goal:
+                self.visited.append(self.current_goal)
+                if len(self.visited) > 50:
+                    self.visited.pop(0)
 
-        # stop and dispose of the timer *inside* the callback
-        if self._pause_timer is not None:
-            self._pause_timer.cancel()
-            self.destroy_timer(self._pause_timer)
-            self._pause_timer = None
-
-
-
-    def _reached_cb(self, msg: Bool):
-        self.goal_reached = msg.data
-        
-        if self.goal_reached:
-            if self.TUNE_MODE:
-                self._last_reached = self.tune_point_i
-                self.tune_point_i = (self.tune_point_i + 1) % len(self.test_points)
-                if self.tune_point_i == 7:
-                    self.tune_point_i = 0
-                self.set_controller_goal(self.test_points[self.tune_point_i])
-            else:                                    # normal frontier mode
-                if self.map is not None:
-                    goal_xy = self.pick_frontier_goal()
-                    if goal_xy is not None:
-                        self.set_controller_goal(goal_xy)
-
-        
-        
     def map_cb(self, msg: OccupancyGrid):
         self.map = msg
-        if self._paused or not self.goal_reached:
+
+        # odom-based auto-reach (runs before early return)
+        # if self.goal_in_flight and self.current_goal and self.robot_xy:
+        #     if math.hypot(self.robot_xy[0] - self.current_goal[0],
+        #                   self.robot_xy[1] - self.current_goal[1]) < REACH_EPS:
+        #         self.get_logger().debug(
+        #             f"odom-auto-reach (≤{REACH_EPS} m)")
+        #         self.goal_in_flight = False
+
+        # if still “busy” or no pose yet, do nothing
+        if self.goal_in_flight or self.robot_xy is None:
             return
 
-        if not self.TUNE_MODE:
-            # ---------- normal frontier exploration ----------
-            goal_xy = self.pick_frontier_goal()
-            if goal_xy:
-                self.set_controller_goal(goal_xy)
+        # pick frontier and dispatch
+        goal = self.pick_frontier_goal()
+        if goal:
+            self.set_controller_goal(goal)
+            self.goal_in_flight = True
+            self.current_goal   = goal
 
-    # ---------------------------------------------------------
+    # ───────────────────── frontier selection ──────────────────────────
     def pick_frontier_goal(self):
-        if self.map is None:
+        if self.robot_xy is None:
             return None
 
-        # reshape flat int8 list into H×W array
-        data = np.array(self.map.data, dtype=np.int8).reshape(
-                    (self.map.info.height, self.map.info.width))
+        h, w   = self.map.info.height, self.map.info.width
+        res    = self.map.info.resolution
+        origin = self.map.info.origin.position
+        grid   = np.asarray(self.map.data, dtype=np.int16).reshape((h, w))
 
-        # Frontier definition: FREE cell that touches at least one UNKNOWN neighbour
-        free     = data == FREE
-        unknown  = data == UNKNOWN
-
-        # 4-connected neighbours
-        neigh = (
-            np.roll(unknown,  1, axis=0) | np.roll(unknown, -1, axis=0) |
-            np.roll(unknown,  1, axis=1) | np.roll(unknown, -1, axis=1)
-        )
-        frontier_mask = np.logical_and(free, neigh)
-
-        ys, xs = np.where(frontier_mask)
-        if len(xs) == 0:
-            self.get_logger().info("No frontier left — exploration done ")
-            rclpy.shutdown()
+        # inflate obstacles
+        occ = (grid == OCC_VAL)
+        pad = int(math.ceil(INFLATE_M / res))
+        if pad > 0:
+            occ = binary_dilation(occ, iterations=pad)
+        free    = (grid == FREE) & (~occ)
+        unknown = (grid == UNKNOWN)
+        neigh   = (np.roll(unknown, 1, 0) | np.roll(unknown, -1, 0) |
+                   np.roll(unknown, 1, 1) | np.roll(unknown, -1, 1))
+        frontier = free & neigh
+        if not frontier.any():
+            self.get_logger().info("🎉 Exploration finished")
             return None
 
-        # pick one at random (anything smarter is fine too)
-        idx = np.random.randint(len(xs))
-        cell_x, cell_y = xs[idx], ys[idx]
+        labels, n = label(frontier, structure=[[0, 1, 0], [1, 1, 1], [0, 1, 0]])
+        rx, ry = self.robot_xy
+        rcx = int((rx - origin.x) / res)
+        rcy = int((ry - origin.y) / res)
 
-        # convert grid index ➜ metres in map frame
-        world_x = cell_x * self.map.info.resolution + self.map.info.origin.position.x
-        world_y = cell_y * self.map.info.resolution + self.map.info.origin.position.y
-        return world_x, world_y
+        # first try within SCAN_RADIUS; if none found, try entire map
+        goal = self._score_frontiers(labels, n, rx, ry, rcx, rcy,
+                                     res, origin, free, scan_limit=SCAN_RADIUS)
+        if goal is not None:
+            return goal
 
-    # ---------------------------------------------------------
-    def set_controller_goal(self, goal: str):
-        """
-        Send the /controller_py “goal” parameter as a double_array.
+        return self._score_frontiers(labels, n, rx, ry, rcx, rcy,
+                                     res, origin, free, scan_limit=float("inf"))
 
-        Parameters
-        ----------
-        goal : Union[str, Sequence[float]]
-            • "[1.2, -0.8]"   (string with brackets / commas)  **or**
-            • (1.2, -0.8)     (list / tuple of floats)
-        """
-        # ---------- normalise input to a list[float] ----------
-        if isinstance(goal, str):
-            try:
-                vals = [float(v) for v in goal.strip("[]() ").split(",")]
-            except ValueError:
-                self.get_logger().error(f"Goal string malformed: {goal!r}")
-                return
-        else:
-            vals = [float(v) for v in goal]
+    # helper: evaluate clusters and return best centroid or None
+    def _score_frontiers(self, labels, n, rx, ry, rcx, rcy,
+                         res, origin, free_mask, scan_limit):
+        best_score, best_goal = -1.0, None
 
-        # ---------- build the SetParameters request ----------
+        for idx in range(1, n + 1):
+            ys, xs = np.where(labels == idx)
+            if len(xs) < MIN_UNKNOWN_IN_CLUSTER:
+                continue
+
+            cx, cy = xs.mean(), ys.mean()
+            gx = cx * res + origin.x
+            gy = cy * res + origin.y
+
+            dist = math.hypot(gx - rx, gy - ry)
+            if dist < REACH_EPS or dist > scan_limit:
+                continue
+            if any(math.hypot(gx - vx, gy - vy) < VISITED_EPS
+                   for vx, vy in self.visited):
+                continue
+            if not self.reachable((rcx, rcy), (int(cx), int(cy)), free_mask):
+                continue
+
+            score = len(xs) / (dist + 1e-3)      # information gain per metre
+            if score > best_score:
+                best_score, best_goal = score, (gx, gy)
+
+        return best_goal
+
+    # ────────────────────── A* reachability ────────────────────────────
+    def reachable(self, start, goal, free_mask):
+        h, w = free_mask.shape
+        inside = lambda c: 0 <= c[0] < w and 0 <= c[1] < h
+        if not (inside(goal) and free_mask[goal[1], goal[0]]):
+            return False
+
+        openh = [(0, start)]
+        g_cost = {start: 0}
+        explored = 0
+
+        while openh:
+            f, (x, y) = heapq.heappop(openh)
+            if (x, y) == goal:
+                return True
+            explored += 1
+            if explored > MAX_ASTAR_CELLS:
+                return False
+
+            for nx, ny in ((x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)):
+                if not inside((nx, ny)) or not free_mask[ny, nx]:
+                    continue
+                ng = g_cost[(x, y)] + 1
+                if ng < g_cost.get((nx, ny), 1e9):
+                    g_cost[(nx, ny)] = ng
+                    h_est = abs(nx - goal[0]) + abs(ny - goal[1])
+                    heapq.heappush(openh, (ng + h_est, (nx, ny)))
+
+        return False  # open list exhausted
+
+    # ───────────────── controller interface ────────────────────────────
+    def set_controller_goal(self, xy):
         req = SetParameters.Request()
         req.parameters.append(
-            Parameter(
-                name="goal",
-                value=vals,
-                type_=Parameter.Type.DOUBLE_ARRAY          # force correct type
-            ).to_parameter_msg()
-        )
+            Parameter(name="goal", value=list(xy)).to_parameter_msg())
 
-        # ---------- call the service ----------
-        if not self.param_cli.wait_for_service(timeout_sec=1.0):
-            self.get_logger().warn("/controller_py parameter service not available")
+        if not self.param_cli.wait_for_service(timeout_sec=0.5):
+            self.get_logger().warning("controller_py parameter service unavailable")
             return
 
-        future = self.param_cli.call_async(req)
+        fut = self.param_cli.call_async(req)
+        fut.add_done_callback(lambda _: self.get_logger().info(f"New goal → {xy}"))
 
-        # ---------- result callback ----------
-        def _done_cb(fut):
-            try:
-                res = fut.result()
-                if res.results and res.results[0].successful:
-                    self.get_logger().info(f"Sent new goal {vals} ✅")
-                else:
-                    reason = res.results[0].reason if res.results else "unknown error"
-                    self.get_logger().warn(f"Goal rejected: {reason}")
-            except Exception as e:
-                self.get_logger().error(f"Set-parameter call failed: {e}")
-
-        future.add_done_callback(_done_cb)
-
-
-# ---------- main ----------
+# ───────────────────────────── main ────────────────────────────────────
 def main():
     rclpy.init()
     rclpy.spin(FrontierExplorer())
+    rclpy.shutdown()
 
 if __name__ == "__main__":
     main()

@@ -7,6 +7,7 @@ from launch_ros.substitutions import FindPackageShare
 def generate_launch_description():
     pkg             = get_package_share_directory('terp2_slam')
     rviz_config_dir = PathJoinSubstitution([pkg, "rviz", "slam_custom.rviz"])
+    common          = PathJoinSubstitution([pkg, "config", "map_planner_control_constants.yaml"])
     
     return LaunchDescription([
 

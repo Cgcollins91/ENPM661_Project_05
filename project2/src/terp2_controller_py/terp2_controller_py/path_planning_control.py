@@ -80,14 +80,13 @@ class Quaternion:
 # ---------------------------------------------------------------------------#
 # Main node                                                                   #
 # ---------------------------------------------------------------------------#
-class Terp2Controller(Node):
+class Terp2PathController(Node):
     def __init__(self) -> None:
-        super().__init__("controller_py")
+        super().__init__("path_planning_control")
 
         # ---------------------------- ROS parameters -------------------- #
         self.declare_parameter("goal", [0.0, 0.0])
-        self.declare_parameter("arm_goal", [0.0] * 5)
-        self.declare_parameter("gripper_goal", [0.0] * 4)
+        
 
         # ------------------------------ pubs ---------------------------- #
         self.pub_pos = self.create_publisher(
@@ -104,11 +103,11 @@ class Terp2Controller(Node):
         )
 
         self.reached_pub = self.create_publisher(Bool,
-                                                 "/controller_py/goal_reached",
+                                                 "/path_planning_control/goal_reached",
                                                  qos_profile=1)
         
         self.pub_goal_dist = self.create_publisher(Float32,
-                                            "/controller_py/goal_dist",
+                                            "/path_planning_control/goal_dist",
                                             10)
 
         # ----------------------------- subs ----------------------------- #
@@ -125,13 +124,13 @@ class Terp2Controller(Node):
         self.link_coords: list[list[float]] = []
         self.link_orients: list[Quaternion] = []
 
-        self.position = [0.0, 0.0, 0.0]
+        self.position    = [0.0, 0.0, 0.0]
         self.orientation = Quaternion()
-        self.vel_linear = [0.0, 0.0, 0.0]
+        self.vel_linear  = [0.0, 0.0, 0.0]
         self.vel_angular = [0.0, 0.0, 0.0]
 
-        self.goal_xy = self.get_parameter("goal").value
-        self.joint_goals = self.get_parameter("arm_goal").value
+        self.goal_xy       = self.get_parameter("goal").value
+        self.joint_goals   = self.get_parameter("arm_goal").value
         self.gripper_goals = self.get_parameter("gripper_goal").value
 
         self.goal_radius = 0.0
