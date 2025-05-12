@@ -12,6 +12,7 @@ import math
 import heapq
 import numpy as np
 import csv
+import os
 
 
 def CheckOpenList(coords, open_list):
@@ -110,9 +111,9 @@ def move_set(node, u_l, u_r, buffer_set, wheel_radius, wheel_base, t_curve=2):
 
 def ValidMove(node):
     # Check if move is valid
-    if((node[0] < 0) or (node[0] >= 2000)):
+    if((node[0] < 0) or (node[0] >= 199)):
         return False
-    elif((node[1] < 0) or (node[1] >= 1500)):
+    elif((node[1] < 0) or (node[1] >= 200)):
         return False
     else:
         return True
@@ -148,49 +149,57 @@ def reverse_move(node,movement, wheel_radius, wheel_base, t_curve):
     return xy_list
 
 
-def InObjectSpace(x, y):
+def InObjectSpace(x, y, c_space):
     """
     Define the object space for all letters/numbers in the maze
     Also used for determining if a set of (x,y) coordinates is present in 
     the action space
     Returns: True if in Object Space, False if not
     """
-        
-    # Object 1
-    if ((0<=x<=1999) and (0<=y<=99)):
-        return True
     
-    # Object 2
-    elif ((0<=x<=999) and (399<=y<=499)): 
-        return True
-    
-    # Object 3
-    elif ((1499<=x<=1999) and (399<=y<=499)):
-        return True
-    
-    # Object 4
-    elif((0<=x<=999) and (999<=y<=1099)):
-        return True
-
-    # Object 5
-    elif((1499<=x<=1999) and (999<=y<=1099)):
-        return True
-    
-    # Object 6
-    elif((0<=x<=1999) and (1399<=y<=1499)):
-        return True
-    
-    # Object 7 -- Desk Near Start Point
-    elif((0<=x<=199) and (549<=y<=949)):
-        return True
-
-    # Define Object Space for walls
-    elif( ( (0<=x<=1999) and y==0) or ((0<=x<=1999) and y==1499)):# or (x==0 and (0<=y<=699)) or (x==1399 and (0<=y<=699)) ): \
-        return True
-
-    # Default case, non-object space    
-    else:
+    try: 
+        if(c_space[(x,y)] == 0):
+            return True
+        else:
+            return False
+    except KeyError:
         return False
+    
+    # # Object 1
+    # if ((0<=x<=1999) and (0<=y<=99)):
+    #     return True
+    
+    # # Object 2
+    # elif ((0<=x<=999) and (399<=y<=499)): 
+    #     return True
+    
+    # # Object 3
+    # elif ((1499<=x<=1999) and (399<=y<=499)):
+    #     return True
+    
+    # # Object 4
+    # elif((0<=x<=999) and (999<=y<=1099)):
+    #     return True
+
+    # # Object 5
+    # elif((1499<=x<=1999) and (999<=y<=1099)):
+    #     return True
+    
+    # # Object 6
+    # elif((0<=x<=1999) and (1399<=y<=1499)):
+    #     return True
+    
+    # # Object 7 -- Desk Near Start Point
+    # elif((0<=x<=199) and (549<=y<=949)):
+    #     return True
+
+    # # Define Object Space for walls
+    # elif( ( (0<=x<=1999) and y==0) or ((0<=x<=1999) and y==1499)):# or (x==0 and (0<=y<=699)) or (x==1399 and (0<=y<=699)) ): \
+    #     return True
+
+    # # Default case, non-object space    
+    # else:
+    #     return False
 
 
 
@@ -226,7 +235,7 @@ def euclidean_distance(node, goal_state):
     return math.sqrt((goal_state[0] - node[0])**2 + (goal_state[1] - node[1])**2)
 
 
-def DrawBoard(rows, cols, pxarray, pallet, C2C, clear, r, screen):
+def DrawBoard(rows, cols, pxarray, pallet, C2C, clear, r, screen, c_space):
     """
     Draw the initial game board, colors depict:
     White: In object space
@@ -251,13 +260,19 @@ def DrawBoard(rows, cols, pxarray, pallet, C2C, clear, r, screen):
     """
     buffer_set = set()
     buff_mod = clear + r
+    
+    # Ensure pixel array is wiped clean each time
+    for x in range(0,rows):
+        for y in range(0,cols):
+            pxarray[x,y] = 0
+    
     for x in range(1,rows-1):
         for y in range(0,cols):
-            in_obj = InObjectSpace(x,y)
+            in_obj = InObjectSpace(x,y,c_space)
             if (in_obj):
                 pygame.draw.circle(screen,pygame.Color(pallet["green"]),(x,y),buff_mod,0)
   
-            elif(0<y<=buff_mod or (1498-buff_mod)<=y<1499):
+            elif(0<y<=buff_mod or (cols-buff_mod)<=y<cols):
                     pxarray[x,y] = pygame.Color(pallet["green"])
 
     for x in range(0,rows):
@@ -267,7 +282,7 @@ def DrawBoard(rows, cols, pxarray, pallet, C2C, clear, r, screen):
 
     for x in range(0,rows):
         for y in range(0,cols):
-            if InObjectSpace(x,y):
+            if InObjectSpace(x,y, c_space):
                 pxarray[x,y] = pygame.Color(pallet["black"])
     
     for x in range(0,rows):
@@ -449,8 +464,29 @@ def GetTargetPairs(dewey, bookstack, n, start_node):
 #%%
 # Initialize pygame
 
+c_space = {}
+csv_path = "mygrid.csv"
+# if not os.path.isabs(csv_path):
+#     csv_path = os.path.join(os.path.dirname(__file__), csv_path)
+
+with open(csv_path, newline="") as f:
+    next(f)
+    
+    for x, y, state in csv.reader(f):
+        c_x = int((float(x)*10.0)+100)-1
+        c_y = int((float(y)*10.0)+100)-1
+        
+        if (state == "unknown" or state == "occupied"):
+            c_state = 0
+        else: c_state = 1
+        c_space[(c_x, c_y)] = c_state
+        
+   #rows, cols = c_x, c_y
+    
+#scale = 1
+
 # Screen dimensions
-rows, cols = (2000, 1500)
+rows, cols = (200, 200)
 
 # Define Lists
 
@@ -459,15 +495,17 @@ SL = []  # Solution list
 index_ctr  = 0
 solution   = []
 thresh     = 0.5
-wheel_radius = 5.0  # units: cm
-robot_radius = 30   # units: cm
-wheel_base   = 57.0 # units: cm
+# wheel_radius = 50.0  # units: cm
+# robot_radius = 30   # units: cm
+# wheel_base   = 57.0 # units: cm
+
+wheel_radius = 0.50  # units: cm
+robot_radius = 3.00   # units: cm
+wheel_base   = 5.70 # units: cm
+
 t_curve = 1 # seconds to run curve
 goal_threshold = 5.0
 theta_bins = 72
-
-V         = np.zeros((int(rows/thresh), int(cols/thresh), theta_bins))
-C2C       = np.zeros((int(rows/thresh), int(cols/thresh)))
 
 # Define colors
 pallet = {"white":(255,  255, 255), 
@@ -478,22 +516,22 @@ pallet = {"white":(255,  255, 255),
           }
 
 # Define book rack goal points
-dewey = {000: (650.0, 550.0, 90.0),
-         100: (700.0, 150.0, 90.0),
-         200: (1650.0, 150.0, 90.0),
-         300: (1650.0, 550.0, 90.0),
-         400: (1650.0, 950.0, 270.0),
-         500: (1650.0, 1350.0, 270.0),
-         600: (700.0, 1350.0, 270.0),
-         700: (700.0, 950.0, 270.0)
+dewey = {000: (65.0, 55.5, 180.0),
+         100: (40.0, 35.5, 180.0),
+         200: (165.0, 35.5, 0.0),
+         300: (165.0, 85.5, 0.0),
+         400: (165.0, 110.5, 0.0),
+         500: (165.0, 135.5, 0.0),
+         600: (70.0, 135.5, 180.0),
+         700: (70.0, 95.5, 180.0)
          }
 
 pygame.init()
 
-start_node = [0.0, (450.0, 749.0, 0), (0,0)]
+start_node = [0.0, (100.0, 95.0, 0), (0,0)]
 #goal_node  = (530.0, 149.0)
-RPM1 = 10
-RPM2 = 15
+RPM1 = 5
+RPM2 = 7
 
 # Collect User Input for:
 bookstack, n = GetUserInput()
@@ -501,7 +539,7 @@ TL = GetTargetPairs(dewey, bookstack, n, start_node)
 
 
 # Define screen size
-clearance   = 18
+clearance  = 5
 window_size = (rows+clearance, cols)
 screen = pygame.display.set_mode(window_size)
 pxarray = pygame.PixelArray(screen)
@@ -518,7 +556,9 @@ while running:
         if event.type == pygame.QUIT:
             running = False
     
-    for targ in range(0,n):
+
+    
+    for targ in range(0,len(TL)):
     
         # Draw board with objects and buffer zone
         # rows:      size x-axis (named at one point, and forgot to change)
@@ -527,7 +567,10 @@ while running:
         # C2C:       obsolete, starting costs set in FillCostMatrix()
         # clearance: turn clearance for robot in mm 
         # rradius:   robot radius in mm
-        buffer_set = DrawBoard(rows, cols, pxarray, pallet, C2C, clearance, robot_radius, screen)
+        
+        V         = np.zeros((int(rows/thresh), int(cols/thresh), theta_bins))
+        C2C       = np.zeros((int(rows/thresh), int(cols/thresh)))
+        buffer_set = DrawBoard(rows, cols, pxarray, pallet, C2C, clearance, robot_radius, screen, c_space)
 
         # Update the screen
         pygame.display.update()
@@ -539,13 +582,10 @@ while running:
         CL = {}
         parent  = {}
         costsum = {}
+
         
         pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(start[1][0]), start[1][1]), radius=5.0, width=0) 
         pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(goal[0]), goal[1]), radius=5.0, width=1) 
-        
-        print("Iteration #", targ)
-        print("Start: ", start)
-        print("Goal: ", goal)
         
         # Start A_Star algorithm solver, returns game state of either SUCCESS (True) or FAILURE (false)
         alg_state, solution = A_Star(start, goal, OL, parent, V, C2C, costsum, RPM1, RPM2, t_curve, pxarray,
@@ -559,9 +599,10 @@ while running:
             running = False
             break
         else:
-            print("Solution found! Mapping now")
-            end_time = time.perf_counter()
-            if (targ >= (n+1)): running = False
+            print("Solution found!")
+            if (targ >= n): 
+                end_time = time.perf_counter()
+                running = False
         
         # Update the screen
         pygame.display.update()
@@ -574,28 +615,36 @@ runtime = end_time - start_time
 print("Time required to solve maze: ", runtime, " seconds")
 
 
-# center_y = 749
-# with open("./part01_waypoints.csv", "w", newline="") as file:
-#     writer = csv.writer(file)
-#     writer.writerow([RPM1, RPM2])
-#     for item in solution:
-#         x = item[0][0]
-#         y = center_y - item[0][1]
-#         writer.writerow([x, y])
+center_y = 99
+center_x = 99
+final=[]
+for i in range(0,len(SL)):
+    temp = SL[i]
+    for j in range(0,len(temp)):
+        final.append(temp[j])
+        
+
+with open("./proj5_waypoints.csv", "w", newline="") as file:
+    writer = csv.writer(file)
+    writer.writerow([RPM1, RPM2])
+    for item in final:
+        x = item[0][0] + 99
+        y = center_y - item[0][1]
+        writer.writerow([x, y])
 
 # # Draw start and goal points; start point will be filled, goal point will be hollow
-# pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(start_node[1][0]), start_node[1][1]), radius=5.0, width=0) # Start node    
-# pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(goal_node[0]), goal_node[1]), radius=5.0, width=1) # Goal node
+pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(TL[0][0][1][0]), TL[0][0][1][1]), radius=5.0, width=0) # Start node    
+pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(TL[n][1][0]), TL[n][1][1]), radius=5.0, width=1) # Goal node
 
 # ## Draw solution path
-# final_path_xyt_list = []
-# final_path_drawing = []
-# for item in solution:
-#     xyt = (int(round(item[0][0])),int(round(item[0][1])),int(round(item[0][2])))
-#     final_curve = reverse_move(xyt,item[1])
+final_path_xyt_list = []
+final_path_drawing = []
+for item in final:
+    xyt = (int(round(item[0][0])),int(round(item[0][1])),int(round(item[0][2])))
+    final_curve = reverse_move(xyt,item[1], wheel_radius, wheel_base, t_curve)
     
-#     pygame.draw.lines(screen,pygame.Color(pallet["red"]),False,final_curve,2)
-#     pygame.display.update()
+    pygame.draw.lines(screen,pygame.Color(pallet["red"]),False,final_curve,2)
+    pygame.display.update()
 
 # Freeze screen on completed maze screen until user quits the game
 # (press close X on pygame screen)
