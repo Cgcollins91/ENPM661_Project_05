@@ -3,6 +3,7 @@
 ## Building Docker Image
 The docker folder holds a image definition for ROS Humble
 Build the docker image by:
+
     cd ENPM661_Project_05/docker/humblebot
     ./build.sh
     ./launch.sh
@@ -46,8 +47,6 @@ The script `terp2_build.sh` performs a clean build using `colcon` and sources th
     colcon build
     source install/setup.bash
 
-    ros2 launch terp2 gazebo.launch.py
-
 If you make changes to the project and want to see what happens, you can rerun `terp2_build.sh` or manually run the commands listed above.  
 
 ## Running the Teleop Demo
@@ -72,16 +71,17 @@ Once you have a session ready in one terminal:
 
 In a seperate terminal within the same container:
 
-cd /mnt/ENPM661_Project_05/project2
-./terp2_slam.sh
+    cd /mnt/ENPM661_Project_05/project2
+    ./terp2_slam.sh
 
 In a seperate terminal within the same container:
-cd /mnt/ENPM661_Project_05/project2
-ros2 run terp2_controller_py path_follower
+
+    cd /mnt/ENPM661_Project_05/project2
+    ros2 run terp2_controller_py path_follower
 
 The controller will log telemetry data to the screen.  Use this to monitor what's happening.  This is useful even when using the teleop demo.
 
-
+## Manually Controlling Robot
 To set parameters manually, start a new session (or new container) and run as described previously. Then, run the desired script for setting parameters. Below are examples:
 
     ./terp2_set_goal.sh 10 10 #move the robot to x=10, y=10
