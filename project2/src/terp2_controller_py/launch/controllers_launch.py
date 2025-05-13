@@ -13,18 +13,18 @@ def generate_launch_description():
     use_sim_time   = LaunchConfiguration('use_sim_time', default='true')
 
     controller_node = Node(
-        package   = 'terp2_controller_py',
+        package    = 'terp2_controller_py',
         executable = 'controller_py',     
-        name      = 'controller_py',
-        output    = 'screen',
+        name       = 'controller_py',
+        output     = 'screen',
         parameters=[{'use_sim_time': use_sim_time}],
     )
 
     imu_to_odom_node = Node(
-        package   = 'terp2_controller_py',
+        package    = 'terp2_controller_py',
         executable = 'imu_to_odom',        
-        name      = 'imu_to_odom',
-        output    = 'screen',
+        name       = 'imu_to_odom',
+        output     = 'screen',
         parameters=[{'use_sim_time': use_sim_time}],
     )
 

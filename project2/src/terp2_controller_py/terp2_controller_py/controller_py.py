@@ -1,24 +1,20 @@
 #!/usr/bin/env python3
+
 # ---------------------------------------------------------------------------
-# Project: ENPM661-Project5-Group2
+# Project: ENPM661 Project5 Group2
 # License: MIT
-#
-# This is a one-for-one translation of the original C++ terp2_controller node
-# into Python / rclpy.  Large chunks of the logic are intentionally kept
-# identical so you can diff the two files line-by-line.
+# Translation of C++ terp2_controller node from ENPM Modeling Course Final Project to Python
+# C++ Code written by James Fehrmann
 # ---------------------------------------------------------------------------
 
 from __future__ import annotations
-
 import math
 import time
 from typing import List
-
 import rclpy
 from rclpy.node import Node
 from rclpy.parameter import Parameter
 from rcl_interfaces.msg import SetParametersResult
-
 from std_msgs.msg import Float64MultiArray
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from gazebo_msgs.msg import ModelStates, LinkStates
@@ -26,32 +22,25 @@ from std_msgs.msg import Bool, Float32
 
 
 
+REACHED_THRESH =  0.15     # meters 
+REACHED_RATE   =  5.0      #  H, how fast to check for goal reached
 
-REACHED_THRESH =  0.15      # metres – tweak to taste
-REACHED_RATE   =  5.0      # Hz   – how often we evaluate
 
-# ---------------------------------------------------------------------------#
-# Helpers                                                                    #
-# ---------------------------------------------------------------------------#
 class PID:
-    """Minimal PID controller identical to the one used in C++."""
+    """Minimal PID controller"""
 
     def __init__(self, kp: float = 0.0, ki: float = 0.0, kd: float = 0.0):
         self.set_k_values(kp, ki, kd)
         self.reset()
 
-
-    # ------------------------------------------------------------------ #
     def set_k_values(self, kp: float, ki: float, kd: float) -> None:
         self.kp, self.ki, self.kd = float(kp), float(ki), float(kd)
-
 
     def reset(self) -> None:
         self._prev_err = 0.0
         self._integral = 0.0
 
 
-    # ------------------------------------------------------------------ #
     def calculate(self, error: float, dt: float) -> float:
         self._integral += error * dt
         derivative = (error - self._prev_err) / dt if dt else 0.0
@@ -64,32 +53,32 @@ class PID:
 
 
 class Quaternion:
-    """Enough quaternion maths for yaw extraction."""
+    """ Quaternion class for 3D rotation representation """
 
     def __init__(self, w: float = 1.0, x: float = 0.0, y: float = 0.0, z: float = 0.0):
         self.w, self.x, self.y, self.z = w, x, y, z
 
-    # ------------------------------------------------------------------ #
+    # ------------------------------------------------------------------ 
     def yaw_deg(self) -> float:
-        """Return yaw (Z-axis rotation) in degrees."""
+        """Return yaw (Z-axis rotation) in degrees"""
         siny_cosp = 2.0 * (self.w * self.z + self.x * self.y)
         cosy_cosp = 1.0 - 2.0 * (self.y * self.y + self.z * self.z)
         return math.degrees(math.atan2(siny_cosp, cosy_cosp))
 
 
-# ---------------------------------------------------------------------------#
-# Main node                                                                   #
-# ---------------------------------------------------------------------------#
+# ---------------------------------------------------------------------------
+# Main node                                                                  
+# ---------------------------------------------------------------------------
 class Terp2Controller(Node):
     def __init__(self) -> None:
         super().__init__("controller_py")
 
-        # ---------------------------- ROS parameters -------------------- #
+        # -----------------   ROS parameters   --------------------------
         self.declare_parameter("goal", [0.0, 0.0])
         self.declare_parameter("arm_goal", [0.0] * 5)
         self.declare_parameter("gripper_goal", [0.0] * 4)
 
-        # ------------------------------ pubs ---------------------------- #
+        # ------------------    Publishers    ---------------------------- 
         self.pub_pos = self.create_publisher(
             Float64MultiArray, "/position_controller/commands", 10
         )
@@ -111,7 +100,7 @@ class Terp2Controller(Node):
                                             "/controller_py/goal_dist",
                                             10)
 
-        # ----------------------------- subs ----------------------------- #
+        # ---------------   Subscriptions      ----------------------------- 
         self.create_subscription(
             LinkStates, "/gazebo/link_states", self.link_state_cb, 10
         )
@@ -119,7 +108,6 @@ class Terp2Controller(Node):
             ModelStates, "/gazebo/model_states", self.model_state_cb, 10
         )
 
-        # ------------------------- internal state ----------------------- #
         self.robot_id = "terp2"
         self.link_names: list[str] = []
         self.link_coords: list[list[float]] = []
@@ -151,17 +139,17 @@ class Terp2Controller(Node):
         self.steer = 0.0
         self.velocity = 0.0
 
-        # ---------------- parameter-set callback ----------------------- #
+        # ---------------- parameter-set callback ----------------------- 
         self.add_on_set_parameters_callback(self.parameter_cb)
 
-        # --------------------------- timers ----------------------------- #
+        # --------------------------- timers ----------------------------- 
         self.create_timer(self.dt, self.update_loop)
 
         self.get_logger().info("terp2_controller Python node ready")
 
-    # =================================================================== #
-    #                             Callbacks                               #
-    # =================================================================== #
+    # =================================================================== 
+    #                             Callbacks                               
+    # =================================================================== 
     def link_state_cb(self, msg: LinkStates) -> None:
         self.link_names.clear()
         self.link_coords.clear()
@@ -180,7 +168,7 @@ class Terp2Controller(Node):
                 )
             )
 
-    # ------------------------------------------------------------------- #
+    # ------------------------------------------------------------------- 
     def model_state_cb(self, msg: ModelStates) -> None:
         try:
             idx = next(i for i, n in enumerate(msg.name) if n.startswith(self.robot_id))
@@ -224,36 +212,36 @@ class Terp2Controller(Node):
         return SetParametersResult(successful=True)
     
     def _reached_cb(self):
-        if self.goal_xy is None:                      # no active goal
+        if self.goal_xy is None:     # no active goal
             self.reached_pub.publish(Bool(data=True))
             return
 
         self.reached_pub.publish(Bool(data=(self.goal_radius < REACHED_THRESH)))
         self.get_logger().info(f"Distance to Goal {self.goal_radius}")
 
-    # =================================================================== #
-    #                         Control routines                            #
-    # =================================================================== #
+    # =================================================================== 
+    #                         Control routines                            
+    # =================================================================== 
     def update_loop(self) -> None:
         self.set_goals()
         self.pid_update()
         self.robot_go()
         self._reached_cb()
 
-    # ------------------------------------------------------------------- #
+    # ------------------------------------------------------------------- 
     def pid_update(self) -> None:
-        # velocity PID on distance
+        # Velocity PID on distance
         self.velocity = min(
             self.pid_velocity.calculate(self.goal_radius, self.dt), self.velocity_max
         )
 
-        # steering PID on heading error
+        # Steering PID on heading error
         self.steer = max(
             min(self.pid_steer.calculate(self.goal_theta, self.dt), self.steer_max),
             -self.steer_max,
         )
 
-        # dead-band logic 
+        # Dead-band logic 
         if self.goal_radius < self.target_radius:
             self.steer = 0.0
             self.velocity = 0.0
@@ -264,7 +252,7 @@ class Terp2Controller(Node):
             self.get_logger().info("Going straight until viable turning radius…")
 
 
-    # ------------------------------------------------------------------- #
+    # ------------------------------------------------------------------- 
     def robot_go(self) -> None:
         self.set_robot_steering(self.steer)
         self.set_robot_drive_wheels(self.velocity)
@@ -272,7 +260,7 @@ class Terp2Controller(Node):
         self.set_robot_gripper_joints(self.gripper_goals)
 
 
-    # =============== low-level set-helpers (publishers) ================= #
+    # =============== Set Robot State Helpers ==========================
     def set_robot_drive_wheels(self, velocity: float) -> None:
         msg = Float64MultiArray(data=[velocity, velocity])
         self.pub_vel.publish(msg)
@@ -308,9 +296,9 @@ class Terp2Controller(Node):
         jt.points.append(pt)
         self.pub_grip.publish(jt)
 
-    # =================================================================== #
-    #                        Goal-calculation helpers                     #
-    # =================================================================== #
+    # =================================================================== 
+    #                        Goal-calculation helpers                     
+    # =================================================================== 
     def set_goals(self) -> None:
         self.set_rotational_goal()
         self.set_distance_goal()
@@ -343,17 +331,16 @@ class Terp2Controller(Node):
         )
         self.pub_goal_dist.publish(Float32(data=self.goal_radius))
 
-    # =================================================================== #
-    #                       Debug / logging helpers                       #
-    # =================================================================== #
+
+    # =================================================================== 
+    #                       Debug / logging helpers                       
+    # =================================================================== 
     def log_link_positions(self) -> None:
         for n, c in zip(self.link_names, self.link_coords):
             self.get_logger().info("%s → (%.2f, %.2f, %.2f)", n, *c)
 
 
-# ---------------------------------------------------------------------------#
-# main entry-point                                                           #
-# ---------------------------------------------------------------------------#
+
 def main() -> None:
     rclpy.init()
     node = Terp2Controller()

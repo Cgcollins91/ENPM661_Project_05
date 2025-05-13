@@ -19,7 +19,7 @@ from std_msgs.msg import Bool, Float64MultiArray
 
 REACHED_THRESH = 0.15 # SET SAME AS controller_py.py
 
-# ───────────────── helper functions ─────────────────
+# -----------   helper functions  ----------------------   
 def load_waypoints(fname: str) -> list[list[float]]:
     """
     Return waypoints spaced >= min_step apart.
@@ -30,22 +30,29 @@ def load_waypoints(fname: str) -> list[list[float]]:
     last  = None                            # last point we DID keep
 
     with open(fname, newline="") as f:
+        """
+        Read waypoints from a CSV file output from multi_point_planner.py
+        """
         reader    = csv.reader(f)
-        header    = next(reader, None)         # skip header if present
+        header    = next(reader, None)         # skip heade
         first_row = next(reader, None)         # skip 0,0 node
         for row in reader:
             if not row or row[0].startswith("#"):
                 continue
             x, y = map(float, row[:2])
 
+            # Skip any point closer than min_step to the previous *kept* point
             if last is None or math.hypot(x - last[0], y - last[1]) >= 2*REACHED_THRESH :
                 wps.append([x, y])
-                last = (x, y)               # update the reference
+                last = (x, y)              
 
     return wps
 
 
 def load_goals(fname: str) -> List[List[float]]:
+    """ Load Goals from path plan algo, goal points are used to trigger picking book from onboard
+    storage and placing it on the shelf
+    """
     goals = []
     with open(fname, newline="") as f:
         reader = csv.reader(f)
@@ -57,40 +64,46 @@ def load_goals(fname: str) -> List[List[float]]:
     return goals
 
 
-# ───────────────── main node ─────────────────
+# ------------------   PathFollower class  ----------------------
 class PathFollower(Node):
-    GOAL_EPS = 1e-3                      # metres, tolerance for matching
+    GOAL_EPS = 1e-3  # tolerance for goal reached
 
     def __init__(self):
         super().__init__("path_follower")
 
+        # Get paths to waypoints and goals
         pkg_share     = get_package_share_directory("terp2_controller_py")
         path_csv      = os.path.join(pkg_share, "path", "path.csv")
         goals_csv     = os.path.join(pkg_share, "path", "goals.csv")
 
+        # Load waypoints and goals
         self.waypoints    = load_waypoints(path_csv)
         self.goal_set     = {(gx, gy) for gx, gy in load_goals(goals_csv)}
 
         self.idx           = -1
         self.this_is_goal  = False
-        self.goal_active   = False    # True after we send a goal, False once handled
+        self.goal_active   = False    # True after we send goal, False once handled
         self.need_false    = False    # require one False before trusting the next True
 
+        # Create a client to set parameters
         self.param_cli = self.create_client(SetParameters,
                                             "/controller_py/set_parameters")
         self.get_logger().info("Waiting for /controller_py/set_parameters…")
         self.param_cli.wait_for_service()
 
+        # Create Subscription to listen for goal_reached signal
         self.create_subscription(Bool,
                                  "/controller_py/goal_reached",
                                  self._reached_cb,
                                  10)
+        
+        # Create publisher to send velocity commands
         self.base_vel_pub = self.create_publisher(
             Float64MultiArray, "/velocity_controller/commands", 10
         )
         self._send_next_wp()
 
-    # ───────── waypoint dispatch ─────────
+    # ------------------------------------------------
     def _send_next_wp(self):
         self.idx += 1
         if self.idx >= len(self.waypoints):
@@ -160,42 +173,44 @@ class PathFollower(Node):
         self.base_vel_pub.publish(Float64MultiArray(data=[0.0, 0.0]))
 
     # ------------------------------------------------------------
-    #  Remove one book from storage, then place it on the shelf
+    #  Remove one book from storage, then place on shelf
     # ------------------------------------------------------------
     def _run_ros_sequence(self):
-    # helper to send one arm pose then wait
+    
         def send_arm(joints, wait_s):
+            # send one arm pose then wait
             self._set_param("arm_goal", joints)
             self._freeze_base()
             time.sleep(wait_s)
 
-        # helper to set gripper then wait
         def send_gripper(pads_open_cm, wait_s):
+            # set gripper then wait
             pad = pads_open_cm
             self._set_param("gripper_goal", [0.0, pad, pad, pad])
             self._freeze_base()
             time.sleep(wait_s)
 
-        # ------------ remove 1× book from storage ------------
+        # Remove boook from onboard storage joint commands
         send_arm([0.0,  -0.8,  0.0,  0.0,  0.0], 1)
         send_arm([-1.1, -1.1,  0.0, -0.1,  0.0], 1)
         send_arm([-1.25, -0.9, -0.3, -0.1, 0.0], 1)
-        send_gripper(0.03, 1)                              # open pads ~3 cm
+        send_gripper(0.03, 1)                      # open pads
         send_arm([-1.1, -1.1,  0.0, -0.1,  0.0], 1)
         send_arm([0.0,  -0.8,  0.0,  0.0,  0.0], 1)
         send_arm([0.0,   0.0,  0.0,  0.0,  0.0], 1)
 
-        # ------------ place 1× book on shelf ------------
+         # Place 1 boook on shelf joint commands
         send_arm([0.0,  0.0,  0.0,  0.0,  0.0], 2)
         send_arm([0.0,  1.0,  2.1,  3.0,  0.0], 2)
         send_arm([0.2,  1.2,  2.2,  3.0,  0.0], 1)
-        send_gripper(0.0, 1)                               # close pads
+        send_gripper(0.0, 1)                       # close pads
         send_arm([0.2,  1.2,  2.2,  3.0,  0.0], 2)
         send_arm([0.0,  0.0,  0.0,  0.0,  0.0], 2)
 
         time.sleep(0.5)    # settle before next waypoint
 
     def _set_param(self, name: str, values: List[float]):
+        """Set a parameter on the controller"""
         msg = ParamMsg(
             name=name,
             value=ParameterValue(
@@ -206,7 +221,6 @@ class PathFollower(Node):
         self.param_cli.call_async(SetParameters.Request(parameters=[msg]))
 
 
-# ───────────────── entry point ─────────────────
 def main():
     rclpy.init()
     node = PathFollower()

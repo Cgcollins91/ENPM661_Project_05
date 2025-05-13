@@ -25,8 +25,6 @@ def cv2_to_xy(xy):
     return (x,y)
 
 
-
-
 def xy_to_cv2_scaled(xy):
     x,y = xy
     x = int(round(10*x))
