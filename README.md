@@ -90,3 +90,10 @@ To set parameters manually, start a new session (or new container) and run as de
     ./terp2_set_arm.sh 3.0 0.5 1.25 -0.8 0.0 #set joints 1 to 5 to the positions of 3.0, 0.5, 1.25, -0.8, and 0.0
     ./terp2_set_gripper.sh 1.5 0.0 0.0 0.0 #set the "gripper joints" to positions 1.5, 0.0, 0.0, and 0.0
     
+
+## Build Map of New World 
+The mapping node can be used to generate a map of any world the robot is launched into, the user could edit the world used in terp2/launch/gazebo.py to any world of their choosing, then the robot could be navigated via teleop or by sending goals(see above) in the terminal to explore the map. Once the map has been sufficiently explore it can be saved with:
+
+    ros2 run terp2_slam save_grid
+   
+

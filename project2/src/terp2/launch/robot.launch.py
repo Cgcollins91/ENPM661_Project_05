@@ -27,7 +27,7 @@ def generate_launch_description():
     xacro_file = "terp2.urdf.xacro"
     robot_name = "terp2"
 
-    robot_pkg = get_package_share_directory(robot_name)
+    robot_pkg  = get_package_share_directory(robot_name)
 
     position    = [0.0, 0.0, 0.8]
     orientation = [0.0, 0.0, -90.0]
@@ -125,7 +125,7 @@ def generate_launch_description():
         )
     )
 
-    gui_arg = launch.actions.DeclareLaunchArgument(name='gui', default_value='True', description='Flag to enable joint_state_publisher_gui')
+    gui_arg      = launch.actions.DeclareLaunchArgument(name='gui', default_value='True', description='Flag to enable joint_state_publisher_gui')
     sim_time_arg = launch.actions.DeclareLaunchArgument(name='use_sim_time', default_value='True', description='Flag to enable use_sim_time')
 
     controller_node = Node(
