@@ -96,4 +96,5 @@ The mapping node can be used to generate a map of any world the robot is launche
 
     ros2 run terp2_slam save_grid
    
+This map can then be used for path planning
 
