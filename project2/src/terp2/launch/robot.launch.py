@@ -30,7 +30,7 @@ def generate_launch_description():
     robot_pkg = get_package_share_directory(robot_name)
 
     position    = [0.0, 0.0, 0.8]
-    orientation = [0.0, 0.0, 0.0]
+    orientation = [0.0, 0.0, -90.0]
 
 
     robot_urdf = os.path.join(robot_pkg, "urdf", xacro_file)

@@ -1,4 +1,9 @@
 #!/usr/bin/env python3
+""" 
+box_filter.py  –  filter laser scan points that are inside box defined by min/max x,y,z
+ Since our LIDAR intersects the robot, we need to filter out points on the robot
+"""
+
 import rclpy, math, numpy as np
 from rclpy.node import Node
 from sensor_msgs.msg import LaserScan
@@ -9,7 +14,7 @@ class BoxFilter(Node):
     def __init__(self):
         super().__init__("box_filter")
 
-        # ------- tunables (ROS parameters) --------
+        # ------- (ROS parameters defined leveraging Robot Geometry --------
         self.declare_parameter("box_frame",  "lidar_link")
         self.declare_parameter("min_x", -0.30); self.declare_parameter("max_x", 0.30)
         self.declare_parameter("min_y", -0.30); self.declare_parameter("max_y", 0.30)
@@ -21,7 +26,7 @@ class BoxFilter(Node):
         ], dtype=np.float32)
         self.box_frame = self.get_parameter("box_frame").value
 
-        # ------- TF & topics --------
+        # ------- TF & topics --------------------------------------------------
         self.tfbuf = Buffer(); self.tfl = TransformListener(self.tfbuf, self)
         self.sub = self.create_subscription(LaserScan, "/scan", self.cb, 10)
         self.pub = self.create_publisher(LaserScan, "/scan_filtered", 10)

@@ -11,12 +11,12 @@
         xyz="-2.08345565981191E-18 -3.46674454072399E-17 0.2"
         rpy="0 0 0" />
       <mass
-        value="250.0" />
+        value="300.0" />
       <inertia
-        ixx="4.0"
+        ixx="14.0"
         ixy="-4.33680868994202E-18"
         ixz="1.11672823766007E-17"
-        iyy="4.0"
+        iyy="14.0"
         iyz="-1.90633701299994E-16"
         izz="8.0" />
     </inertial>
@@ -44,7 +44,6 @@
       </geometry>
     </collision>
   </link>
-    <!-- Put this just after the definition of base_link (but still inside <robot> … </robot>) -->
   <link name="imu_link"/>
   <joint name="joint_imu" type="fixed">
     <parent link="base_link"/>

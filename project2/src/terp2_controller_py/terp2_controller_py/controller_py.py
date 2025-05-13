@@ -27,7 +27,7 @@ from std_msgs.msg import Bool, Float32
 
 
 
-REACHED_THRESH = 0.4      # metres – tweak to taste
+REACHED_THRESH =  0.15      # metres – tweak to taste
 REACHED_RATE   =  5.0      # Hz   – how often we evaluate
 
 # ---------------------------------------------------------------------------#
@@ -145,7 +145,7 @@ class Terp2Controller(Node):
 
         # PID objects
         self.pid_velocity = PID(5, 0.17, 1.7)
-        self.pid_steer = PID(1.7, 0.01, 0.1)
+        self.pid_steer    = PID(1.7, 0.01, 0.1)
 
         # live outputs
         self.steer = 0.0

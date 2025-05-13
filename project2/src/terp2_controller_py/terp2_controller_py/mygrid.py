@@ -16,6 +16,16 @@ with open('mygrid.csv','r', newline='') as csvfile:
 
 csvfile.close()
 
+def cv2_to_xy(xy):
+    x,y = xy
+    x = int(round(10*x))
+    y = int(round(10*y))
+    y = int(100-y)
+    x = int(100+x)
+    return (x,y)
+
+
+
 
 def xy_to_cv2_scaled(xy):
     x,y = xy
@@ -111,3 +121,25 @@ cv2.imshow('map',display_map)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
 # %%
+import sys
+from pathlib import Path
+
+import pandas as pd
+import matplotlib.pyplot as plt
+
+csv_path = '/home/cgcollins91/projects/ENPM662_Project_05/project2/src/terp2_controller_py/path/path.csv'
+import numpy as np
+import matplotlib.pyplot as plt
+
+data = np.loadtxt(csv_path,      # path to your CSV
+                  delimiter=",",                  # or ";" or whitespace
+                  comments="#",                   # ignore comment lines
+                  usecols=(0, 1))                 # first two columns
+
+plt.plot(data[:, 0], data[:, 1], marker="o")
+plt.gca().set_aspect("equal", adjustable="box")
+plt.xlabel("x [m]"); plt.ylabel("y [m]")
+plt.title("CSV waypoints")
+plt.grid(True)
+plt.show()
+
