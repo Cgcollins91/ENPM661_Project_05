@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-# file: model_state_to_odom.py
+# model_state_to_odom.py
+
+"""  –  bridge between Gazebo and robot_localization (Ground Truth)
+"""
+
 import rclpy
 from rclpy.node import Node
 from gazebo_msgs.msg import ModelStates
@@ -8,6 +12,7 @@ from geometry_msgs.msg import TransformStamped
 from tf2_ros import TransformBroadcaster
 
 class GTBridge(Node):
+
     def __init__(self, model_name="terp2"):
         super().__init__("gt_bridge")
         self.model_name  = model_name
