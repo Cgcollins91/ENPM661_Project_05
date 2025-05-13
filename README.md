@@ -1,9 +1,8 @@
 # Group 2, Library Robot
 
 ## Building Docker Image
-The docker folder holds a variety of image definitions: humblebot, jazzybot, ubuntu2204, ubuntu2404, etc.  
-Building each docker image works the same way.  Using humblebot as an example:
-
+The docker folder holds a image definition for ROS Humble
+Build the docker image by:
     cd ENPM661_Project_05/docker/humblebot
     ./build.sh
     ./launch.sh
@@ -31,8 +30,7 @@ Launching can also be done manually. Assuming the image was built without issue,
 
 Replace '99' with any number you like.  This helps identify unique containers.  (e.g., humblebot1, humblebot2, etc.).
 
-The launch script will try to mount your code directory to the container.  This lets you edit the code from your host/laptop and see the code changes in the container.
-The launch script will try to find your code directory in one of a few expected locations.  You may have to edit launch.sh if you have a unique project folder.
+The launch script will try to mount your code directory to the container.  This lets you edit the code from your host/laptop and see the code changes in the container. The launch script will try to find your code directory in one of a few expected locations.  You may have to edit launch.sh if you have a unique project folder.
 
 ## Running the Gazebo Demo
 If there are changes to the Dockerfile, you will need to update the image and start a fresh container.  Please see the instructions in the previous sections.
@@ -60,26 +58,29 @@ After connecting to the existing container and spawning the library world, you c
     cd /mnt/ENPM661_Project_05/project2
     ./terp2_teleop.sh
 
-## Running the Controller Demo
+# Path Planning
+Path planning is executed outside of the gazebo simulation environment and stores a csv of waypoints and goal points in terp2_controller_py/path. The gazebo simulation reads in the csv file generated and follows the path.
 
-Before starting the controller, you will need to startup the Gazebo simulator.  Once the robot is loaded in Gazebo, without error, start another session to the same container, or start a new container.  For instructions, see above as with the teleop demo.
+## Running the Path Planning, Mapping, and Book Shelving Demo
 
-Once you have a session ready:
+Before starting the mapping and path planning demo you  need to startup the Gazebo simulator.  Once the robot is loaded in Gazebo, without error, start another session to the same container, or start a new container.  For instructions, see above as with the teleop demo. The robot will follow the path in path/path.csv and shelf a book at each goal point in path/goals.csv
+
+Once you have a session ready in one terminal:
 
     cd /mnt/ENPM661_Project_05/project2
-    ./terp2_controller.sh
+    ./terp2_empty.sh  --> Start Gazebo Simulation loading robot into library world
 
-That bash script is basically running:
+In a seperate terminal within the same container:
 
-    ros2 run terp2_controller terp2_controller
+cd /mnt/ENPM661_Project_05/project2
+./terp2_slam.sh
+
+In a seperate terminal within the same container:
+cd /mnt/ENPM661_Project_05/project2
+ros2 run terp2_controller_py path_follower
 
 The controller will log telemetry data to the screen.  Use this to monitor what's happening.  This is useful even when using the teleop demo.
 
-To run the library shelving demo within the library world in Gazebo, run
-
-    ./terp2_library_nav.sh
-
-This script is a sequence of actions defined by setting parameters with `terp2_set_goal.sh`, `terp2_set_arm.sh` and `terp2_set_gripper.sh`
 
 To set parameters manually, start a new session (or new container) and run as described previously. Then, run the desired script for setting parameters. Below are examples:
 

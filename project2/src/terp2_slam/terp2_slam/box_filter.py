@@ -41,14 +41,14 @@ class BoxFilter(Node):
             self.get_logger().warn_throttle(5.0, f"TF lookup failed: {e}")
             return
 
-        # ranges → Cartesian in laser frame --------------------------
+        # Ranges → Cartesian in laser frame --------------------------
         angles = scan.angle_min + np.arange(len(scan.ranges))*scan.angle_increment
         ranges = np.asarray(scan.ranges, dtype=np.float32)
         xs = ranges * np.cos(angles)
         ys = ranges * np.sin(angles)
         zs = np.zeros_like(xs)
 
-        # transform into box_frame -----------------------------------
+        # Transform into box_frame -----------------------------------
         q = tf.transform.rotation
         Rz = 2*(q.w*q.z + q.x*q.y)
         Rw = 1 - 2*(q.y*q.y + q.z*q.z)

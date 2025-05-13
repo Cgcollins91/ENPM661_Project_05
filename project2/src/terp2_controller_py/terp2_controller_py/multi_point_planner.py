@@ -625,8 +625,8 @@ for i in range(0,len(SL)):
     for j in range(0,len(temp)):
         final.append(temp[j])
         
-
-with open("./proj5_waypoints.csv", "w", newline="") as file:
+path_folder = 'ENPM661_Project_05/project2/src/terp2_controller_py/path'
+with open(path_folder + "./path.csv", "w", newline="") as file:
     writer = csv.writer(file)
     writer.writerow([RPM1, RPM2])
     for item in final:
@@ -634,7 +634,7 @@ with open("./proj5_waypoints.csv", "w", newline="") as file:
         y = (item[0][1] - center_y ) / 10
         writer.writerow([x, y])
 
-with open("./proj5_start_foal.csv", "w", newline="") as file:
+with open(path_folder + "./goals.csv", "w", newline="") as file:
     writer = csv.writer(file)
     for item in TL:
         x = (item[1][0] - 99) / 10

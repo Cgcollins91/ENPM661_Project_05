@@ -1,3 +1,6 @@
+#  file:  terp2_controller_py/launch/controllers_launch.py
+#  usage: ros2 launch terp2_slam slam_custom_launch.py
+
 from launch import LaunchDescription
 from launch_ros.actions import Node
 from ament_index_python.packages import get_package_share_directory

@@ -1,4 +1,4 @@
-#  file: terp2_controller_py/launch/controllers_launch.py
+#  file:  terp2_controller_py/launch/controllers_launch.py
 #  usage: ros2 launch terp2_controller_py controllers_launch.py
 
 from launch               import LaunchDescription
