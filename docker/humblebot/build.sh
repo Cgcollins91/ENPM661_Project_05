@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Project: ENPM662-Project1-Group1
+# Project: ENPM661-Project5-Group2
 # Description: Build a docker image using the Dockerfile
 
 PROJECT=humblebot

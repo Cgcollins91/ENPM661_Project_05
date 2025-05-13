@@ -8,7 +8,7 @@
 # Please see the project report for a list of references, or contact
 # the team with specific questions.
 
-BASE_PATH=/mnt/ENPM662_Project_05/project2
+BASE_PATH=/mnt/ENPM661_Project_05/project2
 cd ${BASE_PATH} || exit
 source /opt/ros/humble/setup.bash
 # colcon build --packages-select terp2_controller_py --symlink-install

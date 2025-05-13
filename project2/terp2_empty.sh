@@ -8,7 +8,7 @@
 # Please see the project report for a list of references, or contact
 # the team with specific questions.
 
-BASE_PATH=/mnt/ENPM662_Project_05/project2
+BASE_PATH=/mnt/ENPM661_Project_05/project2
 cd ${BASE_PATH} || exit
 source ${BASE_PATH}/install/setup.bash
 # ros2 service call /slam_toolbox/reset std_srvs/srv/Empty {}
