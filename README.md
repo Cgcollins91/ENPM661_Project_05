@@ -58,23 +58,25 @@ After connecting to the existing container and spawning the library world, you c
     ./terp2_teleop.sh
 
 # Path Planning
-Path planning is executed outside of the gazebo simulation environment and stores a csv of waypoints and goal points in terp2_controller_py/path. The gazebo simulation reads in the csv file generated and follows the path.
+Path planning is executed outside of the gazebo simulation environment and stores a csv of waypoints and goal points in terp2_controller_py/path. The gazebo simulation reads in the csv file generated and follows the path. To run path planning
+
+    python project2/src/terp2_controller_py/terp2_controller_py/multi_point_planner.py
+
 
 ## Running the Path Planning, Mapping, and Book Shelving Demo
-
 Before starting the mapping and path planning demo you  need to startup the Gazebo simulator.  Once the robot is loaded in Gazebo, without error, start another session to the same container, or start a new container.  For instructions, see above as with the teleop demo. The robot will follow the path in path/path.csv and shelf a book at each goal point in path/goals.csv
 
-Once you have a session ready in one terminal:
+Once you have a session ready in one terminal, Start Gazebo Simulation loading robot into library world:
 
     cd /mnt/ENPM661_Project_05/project2
-    ./terp2_empty.sh  --> Start Gazebo Simulation loading robot into library world
+    ./terp2_empty.sh 
 
-In a seperate terminal within the same container:
+In a seperate terminal within the same container, launch mapping node and view in RVIZ:
 
     cd /mnt/ENPM661_Project_05/project2
     ./terp2_slam.sh
 
-In a seperate terminal within the same container:
+In a seperate terminal within the same container, launch path follower:
 
     cd /mnt/ENPM661_Project_05/project2
     ros2 run terp2_controller_py path_follower
