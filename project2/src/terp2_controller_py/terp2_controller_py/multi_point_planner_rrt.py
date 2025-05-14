@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+""" Modified Version of A* Search Algorithm Multi-Point Planner
+    to implement RRT* Search Algorithm
+"""
+
 # %%
 
 #############################
@@ -14,7 +18,8 @@ import heapq
 import numpy as np
 import csv
 import os
-
+from rrt_star_planner import RRTStar, is_free 
+from pathlib import Path
 
 def CheckOpenList(coords, open_list):
     '''
@@ -165,6 +170,7 @@ def InObjectSpace(x, y, c_space):
             return False
     except KeyError:
         return False
+    
 
 
 def GeneratePath(CurrentNode, parent, start_state):
@@ -467,7 +473,7 @@ wheel_radius = 0.05  # units: cm
 robot_radius = 0.300   # units: cm
 wheel_base   = .570 # units: cm
 
-t_curve        = 35 # seconds to run curve
+t_curve        = 1 # seconds to run curve
 goal_threshold = 5.01
 
 theta_bins = 72
@@ -552,26 +558,37 @@ while running:
         pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(start[1][0]), start[1][1]), radius=5.0, width=0) 
         pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(goal[0]), goal[1]), radius=5.0, width=1) 
         
-        # Start A_Star algorithm solver, returns game state of either SUCCESS (True) or FAILURE (false)
-        alg_state, solution = A_Star(start, goal, OL, parent, V, C2C, costsum, RPM1, RPM2, t_curve, pxarray,
-                                     pallet, screen, goal_threshold, buffer_set, wheel_radius, wheel_base)
-    
-        SL.append(solution)
-    
-        if alg_state == False:
-            print("Unable to find solution")
-            end_time = time.perf_counter()
+
+        planner = RRTStar(
+            start_xy=start[1][:2],          # (x, y)
+            goal_xy=goal,                   # (x, y)
+            is_free = lambda p: screen.get_at((int(p[0]), int(p[1]))) not in (
+                      pygame.Color(pallet["black"]),
+                      pygame.Color(pallet["green"])
+                  ),
+            sample_area=(0, rows, 0, cols),
+            step_len=2.0,                   # tweak these three
+            search_radius=10.0,
+            goal_sample_rate=0.01,
+            max_iter=4000
+        )
+        ok, rrt_path = planner.plan(display=screen)
+
+        if ok:
+            # wrap each pose in the same [(pos, speeds)] tuple shape A* used
+            SL.append([((x, y, 0.0), (0, 0)) for x, y in rrt_path])
+        else:
+            print(f"RRT* failed for target {targ} after {planner.max_iter} samples")
             running = False
             break
-        else:
-            print("Solution found!")
-            if (targ >= n): 
-                end_time = time.perf_counter()
-                running = False
+    
         
         # Update the screen
         pygame.display.update()
 
+        # after the for-loop (still inside `while running`)
+    running = False          # all targets processed → exit solver loop
+    end_time = time.perf_counter() 
 
 
 # Calculate run time for solver
@@ -588,8 +605,11 @@ for i in range(0,len(SL)):
     for j in range(0,len(temp)):
         final.append(temp[j])
         
-path_folder = 'ENPM661_Project_05/project2/src/terp2_controller_py/path'
-with open(path_folder + "/path.csv", "w", newline="") as file:
+# directory that sits next to this script
+path_folder = Path(__file__).resolve().parent / "path"
+path_folder.mkdir(parents=True, exist_ok=True)   # ← create it if missing
+
+with (path_folder / "rrt_path.csv").open("w", newline="") as file:
     writer = csv.writer(file)
     writer.writerow([RPM1, RPM2])
     for item in final:
@@ -597,7 +617,7 @@ with open(path_folder + "/path.csv", "w", newline="") as file:
         y = (item[0][1] - center_y ) / 10
         writer.writerow([x, y])
 
-with open(path_folder + "/goals.csv", "w", newline="") as file:
+with (path_folder / "rrt_goals.csv").open("w", newline="") as file:
     writer = csv.writer(file)
     for item in TL:
         x = (item[1][0] - 99) / 10
@@ -628,6 +648,3 @@ while running:
             running = False
             # quit pygame
             pygame.quit()
-
-
-
