@@ -473,7 +473,7 @@ wheel_radius = 0.05  # units: cm
 robot_radius = 0.300   # units: cm
 wheel_base   = .570 # units: cm
 
-t_curve        = 1 # seconds to run curve
+
 goal_threshold = 5.01
 
 theta_bins = 72
@@ -558,7 +558,7 @@ while running:
         pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(start[1][0]), start[1][1]), radius=5.0, width=0) 
         pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(goal[0]), goal[1]), radius=5.0, width=1) 
         
-
+        t_curve        = 30 # seconds to run curve
         planner = RRTStar(
             start_xy=start[1][:2],          # (x, y)
             goal_xy=goal,                   # (x, y)
@@ -567,10 +567,16 @@ while running:
                       pygame.Color(pallet["green"])
                   ),
             sample_area=(0, rows, 0, cols),
-            step_len=2.0,                   # tweak these three
-            search_radius=10.0,
+            step_len=3.0,                   # tweak these three
+            search_radius=20.0,
             goal_sample_rate=0.01,
-            max_iter=4000
+            max_iter=4000,
+            RPM1=RPM1,
+            RPM2=RPM2,
+            wheel_radius=wheel_radius,
+            wheel_base=wheel_base,
+            t_curve=t_curve,
+            buffer_set=buffer_set,
         )
         ok, rrt_path = planner.plan(display=screen)
 
