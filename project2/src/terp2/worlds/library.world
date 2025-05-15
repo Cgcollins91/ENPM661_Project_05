@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- ENPM662-Project1-Group1 -->
+<!-- ENPM661-Project5-Group2 -->
 <sdf version='1.7'>
   <world name='default'>
     <model name='ground_plane'>
@@ -30820,7 +30820,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/mnt/enpm662p2/solidworks/textbookURDF/meshes/base_link.STL</uri>
+              <uri>/mnt/ENPM661p2/solidworks/textbookURDF/meshes/base_link.STL</uri>
               <scale>1 1 1</scale>
             </mesh>
           </geometry>
@@ -30841,7 +30841,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/mnt/enpm662p2/solidworks/textbookURDF/meshes/base_link.STL</uri>
+              <uri>/mnt/ENPM661p2/solidworks/textbookURDF/meshes/base_link.STL</uri>
               <scale>1 1 1</scale>
             </mesh>
           </geometry>
@@ -30918,7 +30918,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/mnt/enpm662p2/solidworks/textbookURDF/meshes/base_link.STL</uri>
+              <uri>/mnt/ENPM661p2/solidworks/textbookURDF/meshes/base_link.STL</uri>
               <scale>1 1 1</scale>
             </mesh>
           </geometry>
@@ -30939,7 +30939,7 @@
           <pose>0 0 0 0 -0 0</pose>
           <geometry>
             <mesh>
-              <uri>/mnt/enpm662p2/solidworks/textbookURDF/meshes/base_link.STL</uri>
+              <uri>/mnt/ENPM661p2/solidworks/textbookURDF/meshes/base_link.STL</uri>
               <scale>1 1 1</scale>
             </mesh>
           </geometry>

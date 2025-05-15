@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Project: ENPM662-Project1-Group1
+# Project: ENPM661-Project1-Group1
 # Description: Launch a Container
 
 USERNAME=$(id -un)
 USER_ID=$(id -u)
 GROUP_ID=$(id -g)
-REPO="ENPM662_Project_05"
+REPO="ENPM661_Project_05"
 PROJECT='humblebot'
 X11='/tmp/.X11-unix:/tmp/.X11-unix'
 WSLG='/mnt/wslg:/mnt/wslg'

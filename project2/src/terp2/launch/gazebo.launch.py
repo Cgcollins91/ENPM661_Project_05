@@ -1,7 +1,7 @@
 
-# Project: ENPM662-Project1-Group1
+# Project: ENPM661_Project_05
 # License: MIT
-# The code in this file represents the collective work of Group 1.
+# The code in this file represents the collective work of Group 2.
 # At times, code has been liberally borrowed from files provided
 # with the project's instructions or from OSRF training materials.
 # Please see the project report for a list of references, or contact
@@ -19,6 +19,9 @@ def generate_launch_description():
 
     gazebo = get_package_share_directory('gazebo_ros')
     robot = get_package_share_directory('terp2')
+    model_path = os.path.join(robot, 'models')
+
+    
 
     world = os.path.join(
         get_package_share_directory('terp2'),

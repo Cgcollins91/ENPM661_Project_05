@@ -11,7 +11,7 @@
         xyz="-2.08345565981191E-18 -3.46674454072399E-17 0.2"
         rpy="0 0 0" />
       <mass
-        value="250.0" />
+        value="300.0" />
       <inertia
         ixx="14.0"
         ixy="-4.33680868994202E-18"
@@ -44,6 +44,23 @@
       </geometry>
     </collision>
   </link>
+  <link name="imu_link"/>
+  <joint name="joint_imu" type="fixed">
+    <parent link="base_link"/>
+    <child  link="imu_link"/>
+  </joint>
+  <gazebo reference="imu_link">
+    <sensor name="terp2_imu" type="imu">
+      <update_rate>100.0</update_rate>
+      <always_on>true</always_on>
+      <plugin name="imu_pub" filename="libgazebo_ros_imu_sensor.so">
+        <ros>
+          <remapping>~/out:=imu</remapping>   <!-- publishes /imu -->
+        </ros>
+        <frame_name>imu_link</frame_name>
+      </plugin>
+    </sensor>
+  </gazebo>
   <link
     name="link_arm_1">
     <inertial>

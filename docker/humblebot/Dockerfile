@@ -1,4 +1,4 @@
-# Project: ENPM662-Project1-Group1
+# Project: ENPM661-Project5-Group5
 # Description: Humblebot Dockerfile
 
 FROM osrf/ros:humble-desktop-full

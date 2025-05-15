@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<!-- ENPM662-Project1-Group1 -->
+<!-- ENPM661-Project1-Group1 -->
 <robot name="terp2" xmlns:xacro="http://www.ros.org/wiki/xacro">
     <ros2_control name="GazeboSystem" type="system">
         <hardware>
@@ -181,11 +181,12 @@
         </joint>
 
     </ros2_control>
-
+        <!-- Put this just after the definition of base_link (but still inside <robot> … </robot>) -->
     <gazebo>
         <plugin filename="libgazebo_ros2_control.so" name="gazebo_ros2_control">
             <parameters>$(find terp2)/config/control.yaml</parameters>
         </plugin>
     </gazebo>
+
 </robot>
 
