@@ -558,7 +558,7 @@ while running:
         pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(start[1][0]), start[1][1]), radius=5.0, width=0) 
         pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(goal[0]), goal[1]), radius=5.0, width=1) 
         
-        t_curve        = 30 # seconds to run curve
+        t_curve        = 20 # seconds to run curve
         planner = RRTStar(
             start_xy=start[1][:2],          # (x, y)
             goal_xy=goal,                   # (x, y)
@@ -567,10 +567,10 @@ while running:
                       pygame.Color(pallet["green"])
                   ),
             sample_area=(0, rows, 0, cols),
-            step_len=3.0,                   # tweak these three
-            search_radius=20.0,
-            goal_sample_rate=0.01,
-            max_iter=4000,
+            step_len=4.0,                   # tweak these three
+            search_radius=14.0,
+            goal_sample_rate=0.02,
+            max_iter=6000,
             RPM1=RPM1,
             RPM2=RPM2,
             wheel_radius=wheel_radius,

@@ -467,7 +467,7 @@ wheel_radius = 0.05  # units: cm
 robot_radius = 0.300   # units: cm
 wheel_base   = .570 # units: cm
 
-t_curve        = 35 # seconds to run curve
+t_curve        =  20 # seconds to run curve
 goal_threshold = 5.01
 
 theta_bins = 72
@@ -588,7 +588,7 @@ for i in range(0,len(SL)):
     for j in range(0,len(temp)):
         final.append(temp[j])
         
-path_folder = 'ENPM661_Project_05/project2/src/terp2_controller_py/path'
+path_folder = '/home/cgcollins91/projects/ENPM661_Project_05/project2/src/terp2_controller_py/path'
 with open(path_folder + "/path.csv", "w", newline="") as file:
     writer = csv.writer(file)
     writer.writerow([RPM1, RPM2])
