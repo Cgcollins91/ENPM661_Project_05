@@ -22,8 +22,8 @@ def generate_launch_description():
 
     imu_to_odom_node = Node(
         package    = 'terp2_controller_py',
-        executable = 'imu_to_odom',        
-        name       = 'imu_to_odom',
+        executable = 'model_state_to_odom',        
+        name       = 'model_state_to_odom',
         output     = 'screen',
         parameters=[{'use_sim_time': use_sim_time}],
     )

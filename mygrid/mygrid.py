@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 values = []
-with open('mygrid.csv','r', newline='') as csvfile:
+with open('mygrid/mygrid.csv','r', newline='') as csvfile:
     csv_reader = csv.reader(csvfile)
     for row in csv_reader:
         x,y,state = row

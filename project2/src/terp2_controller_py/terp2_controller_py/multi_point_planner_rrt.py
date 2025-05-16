@@ -435,7 +435,7 @@ def GetTargetPairs(dewey, bookstack, n, start_node):
 # Initialize pygame
 
 c_space = {}
-csv_path = "mygrid.csv"
+csv_path = 'project2/src/terp2_controller_py/terp2_controller_py/mygrid.csv'
 # if not os.path.isabs(csv_path):
 #     csv_path = os.path.join(os.path.dirname(__file__), csv_path)
 

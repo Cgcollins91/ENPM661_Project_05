@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 values = []
-with open('mygrid.csv','r', newline='') as csvfile:
+with open('project2/src/terp2_controller_py/terp2_controller_py/mygrid.csv','r', newline='') as csvfile:
     csv_reader = csv.reader(csvfile)
     for row in csv_reader:
         x,y,state = row
