@@ -8,13 +8,14 @@
 #############################
 import pygame
 import pygame.gfxdraw
+
 import time
 import math
 import heapq
 import numpy as np
 import csv
 import os
-
+from pathlib import Path
 
 def CheckOpenList(coords, open_list):
     '''
@@ -588,8 +589,9 @@ for i in range(0,len(SL)):
     for j in range(0,len(temp)):
         final.append(temp[j])
         
-path_folder = '/home/cgcollins91/projects/ENPM661_Project_05/project2/src/terp2_controller_py/path'
-with open(path_folder + "/path.csv", "w", newline="") as file:
+path_folder = Path(__file__).resolve().parent / "path"
+path_folder.mkdir(parents=True, exist_ok=True)   # ← create it if missing
+with (path_folder / "path.csv").open("w", newline="") as file:
     writer = csv.writer(file)
     writer.writerow([RPM1, RPM2])
     for item in final:
@@ -597,7 +599,7 @@ with open(path_folder + "/path.csv", "w", newline="") as file:
         y = (item[0][1] - center_y ) / 10
         writer.writerow([x, y])
 
-with open(path_folder + "/goals.csv", "w", newline="") as file:
+with (path_folder / "goals.csv").open("w", newline="") as file:
     writer = csv.writer(file)
     for item in TL:
         x = (item[1][0] - 99) / 10
@@ -608,7 +610,7 @@ with open(path_folder + "/goals.csv", "w", newline="") as file:
 pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(TL[0][0][1][0]), TL[0][0][1][1]), radius=5.0, width=0) # Start node    
 pygame.draw.circle(screen, pygame.Color(pallet["red"]), (int(TL[n][1][0]), TL[n][1][1]), radius=5.0, width=1) # Goal node
 
-# ## Draw solution path
+# Draw solution path
 final_path_xyt_list = []
 final_path_drawing = []
 for item in final:

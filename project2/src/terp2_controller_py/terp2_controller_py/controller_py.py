@@ -126,13 +126,13 @@ class Terp2Controller(Node):
         self.goal_theta = 0.0
 
         self.steer_max = math.radians(30)  # rad
-        self.velocity_max = 5.0            # m/s wheel angular speed
+        self.velocity_max = 15.0            # m/s wheel angular speed
         self.target_radius = 0.05          # m
         self.turn_radius = 0.4             # m
-        self.dt = 0.5                      # s (matches timer)
+        self.dt = 0.25                      # s (matches timer)
 
         # PID objects
-        self.pid_velocity = PID(5, 0.17, 1.7)
+        self.pid_velocity = PID(5, 0.25, 1.7)
         self.pid_steer    = PID(1.7, 0.01, 0.1)
 
         # live outputs

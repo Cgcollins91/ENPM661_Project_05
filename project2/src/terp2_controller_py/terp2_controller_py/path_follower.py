@@ -17,7 +17,7 @@ from rcl_interfaces.msg  import Parameter as ParamMsg, ParameterValue, Parameter
 from ament_index_python.packages import get_package_share_directory
 from std_msgs.msg import Bool, Float64MultiArray
 
-REACHED_THRESH = 0.15 # SET SAME AS controller_py.py
+REACHED_THRESH = 0.2 # SET SAME AS controller_py.py
 
 # -----------   helper functions  ----------------------   
 def load_waypoints(fname: str) -> list[list[float]]:
@@ -42,7 +42,7 @@ def load_waypoints(fname: str) -> list[list[float]]:
             x, y = map(float, row[:2])
 
             # Skip any point closer than min_step to the previous *kept* point
-            if last is None or math.hypot(x - last[0], y - last[1]) >= 2*REACHED_THRESH :
+            if last is None or math.hypot(x - last[0], y - last[1]) >= REACHED_THRESH :
                 wps.append([x, y])
                 last = (x, y)              
 
@@ -84,6 +84,7 @@ class PathFollower(Node):
         self.this_is_goal  = False
         self.goal_active   = False    # True after we send goal, False once handled
         self.need_false    = False    # require one False before trusting the next True
+        self.start_time    = time.perf_counter()
 
         # Create a client to set parameters
         self.param_cli = self.create_client(SetParameters,
@@ -107,6 +108,9 @@ class PathFollower(Node):
     def _send_next_wp(self):
         self.idx += 1
         if self.idx >= len(self.waypoints):
+            end_time = time.perf_counter()
+            runtime = end_time - self.start_time
+            self.get_logger().info(f"⏰  Path completed in {runtime:.2f} seconds.")
             self.get_logger().info("🎉  All waypoints completed.")
             rclpy.shutdown()
             return
@@ -191,22 +195,22 @@ class PathFollower(Node):
             time.sleep(wait_s)
 
         # Remove boook from onboard storage joint commands
-        send_arm([0.0,  -0.8,  0.0,  0.0,  0.0], 1)
-        send_arm([-1.1, -1.1,  0.0, -0.1,  0.0], 1)
-        send_arm([-1.25, -0.9, -0.3, -0.1, 0.0], 1)
-        send_gripper(0.03, 1)                      # open pads
-        send_arm([-1.1, -1.1,  0.0, -0.1,  0.0], 1)
-        send_arm([0.0,  -0.8,  0.0,  0.0,  0.0], 1)
-        send_arm([0.0,   0.0,  0.0,  0.0,  0.0], 1)
+        # ───────── pick book ───────────────────────────────────────────────
+        send_arm([ 3.0,  0.0, -0.8,  0.0, -0.0], 1)
+        send_arm([ 3.0, -1.1, -1.1,  0.0, -0.1], 1)
+        send_arm([ 3.0, -1.25, -0.9, -0.3, -0.1], 1)
+        send_gripper(0.03, 1)                       # open pads
+        send_arm([ 3.0, -1.1, -1.1,  0.0, -0.1], 1)
+        send_arm([ 3.0,  0.0, -0.8,  0.0,  0.0], 1)
+        send_arm([ 3.0,  0.0,  0.0,  0.0,  0.0], 1)
 
-         # Place 1 boook on shelf joint commands
-        send_arm([0.0,  0.0,  0.0,  0.0,  0.0], 2)
-        send_arm([0.0,  1.0,  2.1,  3.0,  0.0], 2)
-        send_arm([0.2,  1.2,  2.2,  3.0,  0.0], 1)
-        send_gripper(0.0, 1)                       # close pads
-        send_arm([0.2,  1.2,  2.2,  3.0,  0.0], 2)
-        send_arm([0.0,  0.0,  0.0,  0.0,  0.0], 2)
-
+        # ───────── place one book on shelf ────────────────────────────────
+        send_arm([ 2.7,  0.0,  0.0,  0.0,  0.0], 2)
+        send_arm([ 2.7,  0.0,  1.0,  2.1,  3.0], 2)
+        send_arm([ 2.7,  0.2,  1.2,  2.2,  3.0], 1)
+        send_gripper(0.0, 1)                        # close pads
+        send_arm([ 2.7,  0.2,  1.2,  2.2,  3.0], 2)
+        send_arm([ 2.7,  0.0,  0.0,  0.0,  0.0], 2)
         time.sleep(0.5)    # settle before next waypoint
 
     def _set_param(self, name: str, values: List[float]):

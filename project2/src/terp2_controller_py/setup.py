@@ -10,8 +10,8 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
             ('share/terp2_controller_py/launch', ['launch/controllers_launch.py']),
-            ('share/terp2_controller_py/path', ['path/path.csv']),\
-            ('share/terp2_controller_py/path', ['path/goals.csv']),
+            ('share/terp2_controller_py/path', ['terp2_controller_py/path/path.csv']),\
+            ('share/terp2_controller_py/path', ['terp2_controller_py/path/goals.csv']),
         ('share/' + package_name, ['package.xml']),
     ],
     install_requires=['setuptools'],
