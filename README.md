@@ -22,16 +22,27 @@ git clone https://github.com/Cgcollins91/ENPM661_Project_05.git
 ## Python
 
 import pygame
+
 import pygame.gfxdraw
+
 import time
+
 import math
+
 import heapq
+
 import numpy as np
+
 import csv
+
 import os
+
 from pathlib import Path
+
 from __future__ import annotations
+
 from random import random, uniform
+
 from math   import hypot
 
 ## Building Docker Image
