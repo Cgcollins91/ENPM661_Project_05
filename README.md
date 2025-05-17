@@ -33,7 +33,7 @@ Replace '99' with any number you like.  This helps identify unique containers.  
 
 The launch script will try to mount your code directory to the container.  This lets you edit the code from your host/laptop and see the code changes in the container. The launch script will try to find your code directory in one of a few expected locations.  You may have to edit launch.sh if you have a unique project folder.
 
-If this is unsucessful, it is recommended that you edit <your/path/to/the/project> below:
+If this is unsucessful, it is recommended that you edit <your/path/to/the/project> below and then run the following commands in a terminal to launch the docker container after being built:
 
     sudo docker run --rm --net=host -e DISPLAY=$DISPLAY \
                -v /tmp/.X11-unix:/tmp/.X11-unix \
