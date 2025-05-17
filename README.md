@@ -33,6 +33,17 @@ Replace '99' with any number you like.  This helps identify unique containers.  
 
 The launch script will try to mount your code directory to the container.  This lets you edit the code from your host/laptop and see the code changes in the container. The launch script will try to find your code directory in one of a few expected locations.  You may have to edit launch.sh if you have a unique project folder.
 
+If this is unsucessful, it is recommended that you edit <your/path/to/the/project> below:
+
+sudo docker run --rm --net=host -e DISPLAY=$DISPLAY \
+           -v /tmp/.X11-unix:/tmp/.X11-unix \
+           -v <your/path/to/the/project>:/mnt/ENPM661_Project_05 \
+           -v /dev/shm:/dev/shm \
+           -it humblebot
+
+
+cd mnt/ENPM661_Project_05/project2
+
 ## Running the Gazebo Demo
 If there are changes to the Dockerfile, you will need to update the image and start a fresh container.  Please see the instructions in the previous sections.
 
