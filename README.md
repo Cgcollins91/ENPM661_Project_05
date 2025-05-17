@@ -18,6 +18,22 @@ Dan Zinobile
 
 git clone https://github.com/Cgcollins91/ENPM661_Project_05.git
 
+# Dependencies
+## Python
+
+import pygame
+import pygame.gfxdraw
+import time
+import math
+import heapq
+import numpy as np
+import csv
+import os
+from pathlib import Path
+from __future__ import annotations
+from random import random, uniform
+from math   import hypot
+
 ## Building Docker Image
 The docker folder holds a image definition for ROS Humble
 Build the docker image by:
