@@ -64,6 +64,7 @@ Path planning is executed outside of the gazebo simulation environment and store
     python3 multi_point_planner.py
 
 To run RRT* Path Planning
+
     cd project2/src/terp2_controller_py/terp2_controller_py
     python3 multi_point_planner_rrt.py
 
