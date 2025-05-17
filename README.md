@@ -58,9 +58,13 @@ After connecting to the existing container and spawning the library world, you c
     ./terp2_teleop.sh
 
 # Path Planning
-Path planning is executed outside of the gazebo simulation environment and stores a csv of waypoints and goal points in terp2_controller_py/path. The gazebo simulation reads in the csv file generated and follows the path. To run path planning
+Path planning is executed outside of the gazebo simulation environment and stores a csv of waypoints and goal points in terp2_controller_py/path. The gazebo simulation reads in the csv file generated and follows the path. To run A* path planning
 
     python project2/src/terp2_controller_py/terp2_controller_py/multi_point_planner.py
+
+To run RRT* Path Planning
+
+    python project2/src/terp2_controller_py/terp2_controller_py/multi_point_planner_rrt.py
 
 
 ## Running the Path Planning, Mapping, and Book Shelving Demo
