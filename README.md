@@ -14,6 +14,10 @@ Dan Zinobile
   - UID: 121354464
   -  Directory ID: zinobile@umd.edu
 
+# Clone the repository in home folder
+
+git clone https://github.com/Cgcollins91/ENPM661_Project_05.git
+
 ## Building Docker Image
 The docker folder holds a image definition for ROS Humble
 Build the docker image by:
