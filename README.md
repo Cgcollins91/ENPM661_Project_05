@@ -1,5 +1,19 @@
 # Group 2, Library Robot
 
+# Team Members
+
+Chris Collins 
+  - UID: 110697305
+  - Directory ID: ccollin5@umd.edu
+
+Kyle Demmerle 
+  - UID: 121383341
+  - Directory ID: kdemmerl@umd.edu
+
+Dan Zinobile 
+  - UID: 121354464
+  -  Directory ID: zinobile@umd.edu
+
 ## Building Docker Image
 The docker folder holds a image definition for ROS Humble
 Build the docker image by:
