@@ -68,7 +68,7 @@ After connecting to the existing container and spawning the library world, you c
     ./terp2_teleop.sh
 
 # Path Planning
-Path planning is executed outside of the gazebo simulation environment and stores a csv of waypoints and goal points in terp2_controller_py/path. The gazebo simulation reads in the csv file generated and follows the path. To run A* path planning the following commands can be run in terminal, alternatively the scripts can be run in cell mode. Note: You will need to rebuild with ./terp2_build.sh each time you run the path planning to refresh the path/goals use in the path_follower.
+Path planning is executed outside of the gazebo simulation environment and stores a csv of waypoints and goal points in terp2_controller_py/path. The gazebo simulation reads in the csv file generated and follows the path. To run A* path planning the following commands can be run in terminal, alternatively the scripts can be run in cell mode. Note: You will need to rebuild with ./terp2_build.sh each time you run the path planning to refresh the path/goals use in the path_follower. Use Test Case of 2 Books, and input 100 200.
 
     cd project2/src/terp2_controller_py/terp2_controller_py
     python3 multi_point_planner.py
